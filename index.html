@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+
+<html lang="de">
+
+<head>
+	<title>DLX Interpreter</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<script src="interpreter/javascript/dlx_interpreter.js"></script>
+	<script src="interpreter/javascript/interpreter.js"></script>
+	<link rel="stylesheet" type="text/css" href="interpreter/css/stylesheet.css">
+
+	<script src="codemirror/lib/codemirror.js"></script>
+	<link rel="stylesheet" href="codemirror/lib/codemirror.css">
+	<link rel="stylesheet" href="codemirror/theme/eclipse.css">
+
+	<script src="interpreter/javascript/dlx.js"></script>
+</head>
+
+<body class="darktheme">
+	<noscript>
+		<div id="disabledJS">
+			<p>Your browser does not currently use JavaScript. For the interpreter to run, you need to activate
+				JavaScript.</p>
+			<style>
+				#info,
+				#options,
+				#saves,
+				#message,
+				#interpreterControls,
+				#editor,
+				#cells {
+					display: none;
+				}
+			</style>
+		</div>
+	</noscript>
+
+	<div id="info" class="closed">
+		<button onclick="Interpreter.switchInfoBox()">
+			<h2>▼ Info</h2>
+		</button>
+		<div class="wrapper">
+			<h3>A DLX interpreter with following features:</h3>
+			<ol>
+				<li>Editor to write code</li>
+				<li>An overview over the registry and memory entries</li>
+				<li>Save and load feature with autosave and example programs</li>
+				<li>(Hopefully) helpful error messages for debugging</li>
+			</ol>
+			<h3>How to use:</h3>
+			<ol>
+				<li>While you write your program, you can change between interpreter mode and editor mode.</li>
+				<li>The editor mode is the normal write mode, where you can write your program.</li>
+				<li>The interpreter mode locks the editor (but not your memory/registry entries) and you can execute your program
+					complete or in steps.</li>
+			</ol>
+			<h3>Other information:</h3>
+			<p>The license for Codemirror (The editor): <a href="codemirror/LICENSE" target="_blank">License</a></p>
+			<p>The license for everything else: <a href="LICENSE" target="_blank">License</a></p>
+			<p>The project can be found on <a href="https://github.com/destroytec/dlx/" target="_blank">github.com</a>.
+			</p>
+		</div>
+	</div>
+
+	<div id="options" class="closed">
+		<button onclick="Interpreter.switchOptionsBox()">
+			<h2>▼ Options</h2>
+		</button>
+		<div class="wrapper">
+			<div class="content">
+				<h4>Execution</h4>
+				<div>
+					<p>Number of steps the interpreter should do before stopping:
+						<input id="maxSteps" type="number">
+					</p>
+				</div>
+				<div>
+					<p>Number of jumps from one line to another the interpreter should do before stopping:
+						<input id="maxJumps" type="number">
+					</p>
+				</div>
+			</div>
+			<div class="content">
+				<h4>Autosave</h4>
+				<div>
+					<p>The number of autosaves the interpreter should do before overriding the oldest one:
+						<input id="maxAutosaves" type="number">
+					</p>
+				</div>
+				<div>
+					<p>The time between autosaves in seconds:
+						<input id="autosaveIntervall" type="number">
+					</p>
+				</div>
+			</div>
+			<button onclick="Interpreter.saveOptions()">
+				<h3>Save</h3>
+			</button>
+		</div>
+	</div>
+
+	<div id="saves" class="closed">
+		<button onclick="Interpreter.switchSavesBox()">
+			<h2>▼ Save/Load</h2>
+		</button>
+		<div class="wrapper"></div>
+	</div>
+
+	<div id="message" class="closed">
+		<button onclick="Interpreter.switchMessageBox()">
+			<h2>▼ Last message</h2>
+		</button>
+		<div class="wrapper">
+			<p>Everything is fine.</p>
+		</div>
+	</div>
+
+	<div id="interpreterControls" class="closed">
+		<button onclick="Interpreter.switchControlBox()">
+			<h2>Enter interpreter mode</h2>
+		</button>
+		<div class="wrapper">
+			<button onclick="Interpreter.execute()">
+				<h2>Execute</h2>
+			</button>
+			<button onclick="Interpreter.step()">
+				<h2>Step</h2>
+			</button>
+			<button onclick="Interpreter.resetLine()">
+				<h2 id="line">Line: 1</h2>
+			</button>
+		</div>
+	</div>
+
+	<div id="editor"></div>
+	<div id="cells"></div>
+</body>
+
+</html>

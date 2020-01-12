@@ -1,0 +1,247 @@
+
+/* The box that contains the "JavaScript deactivated" message. */
+#disabledJS {
+    text-align: center;
+}
+
+/* Darkmode */
+body.darktheme {
+    background-color: #121212;
+    color: white;
+}
+
+body.darktheme div {
+    background-color: #212121;
+}
+
+body.darktheme div.readOnly div {
+    background-color: #303030;
+}
+
+body.darktheme button {
+    background-color: #212121;
+    color: white;
+}
+
+body.darktheme input {
+    background-color: #303030;
+}
+
+body.darktheme a, body.darktheme .CodeMirror, body.darktheme svg, body.darktheme input {
+    color: white;
+}
+
+/* Font settings.*/
+body, input {
+    font-family: sans-serif;
+    font-size: large;
+}
+
+/* The interpreter. */
+body {
+    margin: 0 auto;
+    max-width: 70em;
+
+    margin-top: 20px;
+}
+
+button {
+    border: 1px solid grey;
+    display: flex;
+    flex: 1 1 auto;
+    justify-content: center;
+}
+
+button * {
+    margin: 0;
+    padding: 5px;
+}
+
+/* General settings for main boxes. */
+#disabledJS, #info, #saves, #options, #message, #editor, #cells, #interpreterControls {    
+    border: 1px solid grey;
+    margin-bottom: 20px;
+}
+
+/* General settings for expandable boxes. */
+#info, #options, #saves, #message, #interpreterControls {
+    display: flex;
+    flex-direction: column;
+    
+}
+
+/* Control bar */
+#interpreterControls.expanded div.wrapper {
+    display: flex;
+    padding: 0;
+    border: none;
+}
+
+#interpreterControls div button {
+    flex: 1 1 auto;
+}
+
+/* Options box */
+#options div button {
+    border: 2px solid grey;
+}
+
+/* Controls box */
+#saveControls {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+/* Editor */
+#editor {
+    border: 2px solid grey;
+    margin-bottom: 20px;
+}
+
+/* Cells */
+#cells {
+    border: 1px solid grey;
+    margin-bottom: 20px;
+}
+
+#cells h2 {
+    border: 1px solid grey;
+    margin: 0;
+    padding: 5px;
+}
+
+/* For expandable boxes. */
+.content {
+    border: 1px solid grey;
+    margin-bottom: 10px;
+}
+
+.content h4 {
+    margin: 0;
+    padding: 10px;
+    border: 1px solid grey;
+}
+
+.content div {
+    display: flex;
+    justify-content: flex-end;
+    border: 1px solid grey;
+    padding: 10px;
+}
+
+.content div p {
+    margin: 0;
+}
+
+.closed .wrapper {
+    display: none;
+}
+
+.expanded .wrapper {
+    border: 1px solid grey;
+    padding: 10px;
+}
+
+/* For the cells. */
+.cellsWrapper {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.cell {
+    display: flex;
+    justify-content: flex-end;
+    border: 1px solid grey;
+    flex: 1 1 calc(calc(100% - 98px) / 8);
+    padding: 5px;
+    align-items: center;
+}
+
+.cell p {
+    margin: 0;
+}
+
+.cell input {
+    width: 0;
+    flex: 1 1 auto;
+}
+
+/* For the save box. */
+.saves {
+    justify-content: flex-start!important;
+    padding: 0!important;
+    border: 0!important;
+    flex-wrap: wrap;
+    flex-direction: column;
+}
+
+.save {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 250px;
+    padding: 0!important;
+}
+
+/* Hiding the number input arrows in firefox. */
+input[type=number] {
+    -moz-appearance:textfield;
+  }
+
+/* Hiding the number input arrows for every other browser. */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+
+/* Make less cells per row for smaller screens. */
+@media (max-width: 1200px) {
+    body {
+        max-width: none;
+    }
+
+    .cell {
+        flex: 1 1 calc(calc(100% - 98px) / 4);
+    }
+}
+
+@media (max-width: 600px) {
+    .cell {
+        flex: 1 1 calc(calc(100% - 98px) / 2);
+    }
+}
+
+#editor .cm-string {
+    color: white;
+}
+
+#editor .cm-label {
+    color: #ffcc80;
+}
+
+#editor .cm-opcode {
+    color: #a5d6a7;
+}
+
+#editor .cm-arg {
+    color: #90caf9;
+}
+
+body.darktheme #editor .CodeMirror-cursor {
+    border-left: 1px solid white;
+}
+
+body.darktheme #editor.readOnly .CodeMirror-cursor {
+    border-left: 1px solid #303030;
+}
+
+#editor .currentLine {
+    background-color: #212121;
+}
