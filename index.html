@@ -18,7 +18,7 @@
 	<script src="interpreter/javascript/dlx.js"></script>
 </head>
 
-<body class="darktheme">
+<body class="lighttheme">
 	<noscript>
 		<div id="disabledJS">
 			<p>Your browser does not currently use JavaScript. For the interpreter to run, you need to activate
@@ -93,6 +93,13 @@
 					<p>The time between autosaves in seconds:
 						<input id="autosaveIntervall" type="number">
 					</p>
+				</div>
+			</div>
+			<div class="content">
+				<h4>Other</h4>
+				<div>
+					<p>Change theme:</p>
+					<button id="changeTheme" onClick="Interpreter.changeTheme()"><p>Change to dark mode</p></button>
 				</div>
 			</div>
 			<button onclick="Interpreter.saveOptions()">
