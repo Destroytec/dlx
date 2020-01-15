@@ -25,10 +25,60 @@ body.darktheme button {
 
 body.darktheme input {
     background-color: #303030;
+    border: 1px solid grey;
 }
 
 body.darktheme a, body.darktheme .CodeMirror, body.darktheme svg, body.darktheme input {
     color: white;
+}
+
+body.darktheme #editor .cm-string {
+    color: white;
+}
+
+body.darktheme #editor .cm-label {
+    color: #ffcc80;
+}
+
+body.darktheme #editor .cm-opcode {
+    color: #a5d6a7;
+}
+
+body.darktheme #editor .cm-arg {
+    color: #90caf9;
+}
+
+body.darktheme #editor .CodeMirror-cursor {
+    border-left: 1px solid white;
+}
+
+body.darktheme #editor.readOnly .CodeMirror-cursor {
+    border-left: 1px solid #303030;
+}
+
+body.darktheme #editor .currentLine {
+    background-color: #212121;
+}
+
+/* Light mode */
+body.lighttheme div.readOnly div {
+    background-color: #efefef;
+}
+
+body.lighttheme #editor .cm-label {
+    color: #e65100;
+}
+
+body.lighttheme #editor .cm-opcode {
+    color: #1b5e20;
+}
+
+body.lighttheme #editor .cm-arg {
+    color: #0d47a1;
+}
+
+body.lighttheme #editor .currentLine {
+    background-color: lightgrey;
 }
 
 /* Font settings.*/
@@ -55,6 +105,19 @@ button {
 button * {
     margin: 0;
     padding: 5px;
+}
+
+#editor {
+    max-height: 50vh;
+    overflow-y: scroll;
+}
+
+.CodeMirror {
+    height: max-content!important;
+}
+
+.CodeMirror-scroll {
+    min-height: 50vh;
 }
 
 /* General settings for main boxes. */
@@ -131,6 +194,7 @@ button * {
 
 .content div p {
     margin: 0;
+    align-self: center;
 }
 
 .closed .wrapper {
@@ -218,30 +282,30 @@ input[type=number]::-webkit-outer-spin-button {
     }
 }
 
-#editor .cm-string {
-    color: white;
-}
+@media print {
+    * {
+        background-color: white!important;
+    }
+    
+    body {
+        margin: 0 auto!important;
+        max-width: 90vw!important;
+        height: auto!important;
+    }
+    
+    #info, #options, #saves, #message, #interpreterControls, #cells {
+        display: none;
+    }
 
-#editor .cm-label {
-    color: #ffcc80;
-}
+    #editor {
+        height: auto!important;
+        overflow: visible!important;
+        border: none;
+    }
 
-#editor .cm-opcode {
-    color: #a5d6a7;
-}
-
-#editor .cm-arg {
-    color: #90caf9;
-}
-
-body.darktheme #editor .CodeMirror-cursor {
-    border-left: 1px solid white;
-}
-
-body.darktheme #editor.readOnly .CodeMirror-cursor {
-    border-left: 1px solid #303030;
-}
-
-#editor .currentLine {
-    background-color: #212121;
+    .CodeMirror {
+        height: max-auto!important;
+        width: 100%!important;
+        overflow: visible!important;
+    }
 }

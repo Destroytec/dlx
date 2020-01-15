@@ -79,7 +79,7 @@
                     state.opcode = true;
 
                     if (/\s/.test(stream.peek()) || stream.eol()) {
-                        for (i = 0; i < opcodes.length; i++) {
+                        for (let i = 0; i < opcodes.length; i++) {
                             if (opcodes[i] == currentWord) {
                                 state.opcode = currentWord;
                                 return "opcode";

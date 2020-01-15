@@ -9,11 +9,12 @@
         let options = {
             maxSteps: 10000,
             maxJumps: 1000,
-            maxAutosaves: 3,
-            autosaveIntervall: 300,
+            maxAutosaves: 5,
+            autosaveIntervall: 60,
             numOfRegistryEntries: 32,
             numOfMemoryEntries: 128,
-            memoryStart: 1000
+            memoryStart: 1000,
+            theme: "lighttheme"
         }
 
         /** The options of the editor. */
@@ -144,8 +145,6 @@
                 updateMessage(status);
                 return;
             }
-
-            updateMessage("Everything is fine!");
         }
 
         /** Executes only a line of the program. */
@@ -168,8 +167,6 @@
                 updateMessage(status);
                 return;
             }
-
-            updateMessage("Everything is fine!");
         }
 
         /** Do everything needed to run the interpreter. */
@@ -177,7 +174,37 @@
             getSavedOptions();
             createEntries();
             createEditor();
-            autosave();
+            setTimeout(autosave, options.autosaveIntervall * 1000);
+
+            let states = localStorage.getItem("AUTOSAVES");
+            if (states !== null) {
+                states = JSON.parse(states);
+                loadAutosave(states.length - 1);
+            }
+
+            if (options.theme !== "lighttheme") {
+                document.body.className = "darktheme";
+                document.getElementById("changeTheme").firstChild.textContent = "Change to light mode";
+            }
+        }
+
+        /** Changes the theme. */
+        let changeTheme = function () {
+            if (options.theme === "lighttheme") {
+                options.theme = "darktheme";
+                document.body.className = "darktheme";
+            } else {
+                options.theme = "lighttheme";
+                document.body.className = "lighttheme";
+            }
+
+            if (options.theme !== "lighttheme") {
+                document.getElementById("changeTheme").firstChild.textContent = "Change to light mode";
+            } else {
+                document.getElementById("changeTheme").firstChild.textContent = "Change to dark mode";
+            }
+
+            saveOptions();
         }
 
         ///////////////////////////////////////////////////////////////////////////////////////////
@@ -336,7 +363,7 @@
             if (autosaves !== null) {
                 autosaves = JSON.parse(autosaves);
 
-                for (i = 0; i < autosaves.length; i++) {
+                for (let i = 0; i < autosaves.length; i++) {
                     currentSave = autosaves[i];
                     buffer += "<div class=save><p>From: " + currentSave.date + "</p><div class=controls><button onclick=Interpreter.loadAutosave(" + i + ")><p>Load</p></button></div></div>";
                 }
@@ -351,7 +378,7 @@
             if (saves !== null) {
                 saves = JSON.parse(saves);
 
-                for (i = 0; i < saves.length; i++) {
+                for (let i = 0; i < saves.length; i++) {
                     currentSave = saves[i];
                     buffer += "<div class=save><p>Name: " + currentSave.name + "</p><p>From: " + currentSave.date + "</p><div class=controls>" +
                         "<button onclick=Interpreter.renameSave(" + i + ")><p>Rename</p></button>" +
@@ -368,7 +395,7 @@
             buffer += "<div class=content><h4>Examples</h4><div class=saves>";
 
             if (examplePrograms !== null) {
-                for (i = 0; i < examplePrograms.length; i++) {
+                for (let i = 0; i < examplePrograms.length; i++) {
                     currentSave = examplePrograms[i];
                     buffer += "<div class=save><p>Name: " + currentSave.name + "</p><div class=controls><button onclick=Interpreter.loadExample(" + i + ")><p>Load</p></button></div></div>";
                 }
@@ -497,13 +524,13 @@
 
             // Getting the values from registry entries.
             state.registry = {};
-            for (i = 1; i < options.numOfRegistryEntries; i++) {
+            for (let i = 1; i < options.numOfRegistryEntries; i++) {
                 state.registry["R" + i] = document.getElementById("R" + i).value;
             }
 
             // Getting the values from memory entries.
             state.memory = {};
-            for (i = 0; i < options.numOfMemoryEntries; i++) {
+            for (let i = 0; i < options.numOfMemoryEntries; i++) {
                 state.memory[i * 4 + options.memoryStart] = document.getElementById(i * 4 + options.memoryStart).value;
             }
 
@@ -516,12 +543,12 @@
             editor.setValue(state.code);
 
             // Setting the registry entries.
-            for (i = 1; i < options.numOfRegistryEntries; i++) {
+            for (let i = 1; i < options.numOfRegistryEntries; i++) {
                 document.getElementById("R" + i).value = state.registry["R" + i];
             }
 
             // Setting the memory entries.
-            for (i = 0; i < options.numOfMemoryEntries; i++) {
+            for (let i = 0; i < options.numOfMemoryEntries; i++) {
                 document.getElementById(i * 4 + options.memoryStart).value = state.memory[i * 4 + options.memoryStart];
             }
         }
@@ -534,7 +561,7 @@
         /** Clears the registry. */
         let clearRegistry = function () {
             // Setting all registry entries (except R0) to empty string.
-            for (i = 1; i < options.numOfRegistryEntries; i++) {
+            for (let i = 1; i < options.numOfRegistryEntries; i++) {
                 document.getElementById("R" + i).value = "";
             }
         }
@@ -542,7 +569,7 @@
         /** Clears the memory. */
         let clearMemory = function () {
             // Setting all memory cells to empty string.
-            for (i = 0; i < options.numOfMemoryEntries; i++) {
+            for (let i = 0; i < options.numOfMemoryEntries; i++) {
                 document.getElementById(i * 4 + options.memoryStart).value = "";
             }
         }
@@ -568,7 +595,7 @@
             buffer += "<div class=cell><p>R0:</p><input id=R0 type=number value=0 disabled=true></div>";
 
             // Adding the other registry entries.
-            for (i = 1; i < options.numOfRegistryEntries; i++) {
+            for (let i = 1; i < options.numOfRegistryEntries; i++) {
                 buffer += "<div class=cell><p>R" + i + ":</p><input id=R" + i + " type=number></div>";
             }
 
@@ -579,7 +606,7 @@
             buffer += "<h2>Memory</h2><div class=cellsWrapper>";
 
             // Adding the memory entries.
-            for (i = 0; i < options.numOfMemoryEntries; i++) {
+            for (let i = 0; i < options.numOfMemoryEntries; i++) {
                 id = 1000 + i * 4;
                 buffer += "<div class=cell><p>[" + id + "]:</p><input id=" + id + " type=number></div>";
             }
@@ -602,11 +629,11 @@
         let setEntriesToInterpreter = function () {
             let address;
 
-            for (i = 1; i < options.numOfRegistryEntries; i++) {
+            for (let i = 1; i < options.numOfRegistryEntries; i++) {
                 DLX_Interpreter.setRegistryValue("R" + i, document.getElementById("R" + i).value);
             }
 
-            for (i = 0; i < options.numOfMemoryEntries; i++) {
+            for (let i = 0; i < options.numOfMemoryEntries; i++) {
                 address = (options.memoryStart + i * 4) + "";
                 DLX_Interpreter.setMemoryValue(address, document.getElementById(address).value);
             }
@@ -617,7 +644,7 @@
             let value,
                 address;
 
-            for (i = 1; i < options.numOfRegistryEntries; i++) {
+            for (let i = 1; i < options.numOfRegistryEntries; i++) {
                 value = DLX_Interpreter.getRegistryValue("R" + i);
 
                 if (!isNaN(value)) {
@@ -625,7 +652,7 @@
                 }
             }
 
-            for (i = 0; i < options.numOfMemoryEntries; i++) {
+            for (let i = 0; i < options.numOfMemoryEntries; i++) {
                 address = (options.memoryStart + i * 4) + "";
                 value = DLX_Interpreter.getMemoryValue(address);
 
@@ -736,6 +763,8 @@
             execute: execute,
 
             step: step,
+
+            changeTheme: changeTheme,
 
             switchInfoBox: switchInfoBox,
 

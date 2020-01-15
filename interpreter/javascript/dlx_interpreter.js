@@ -776,10 +776,10 @@
             // Resetting jumps.
             jumps = [];
 
-            for (i = 0; i <= program.length; i++) {
+            for (let i = 0; i <= program.length; i++) {
                 buffer = [];
 
-                for (j = 0; j <= program.length; j++) {
+                for (let j = 0; j <= program.length; j++) {
                     buffer[j] = 0;
                 }
 
@@ -872,17 +872,17 @@
             jumps = [];
 
             // Creating jump array.
-            for (i = 0; i <= program.length; i++) {
+            for (let i = 0; i <= program.length; i++) {
                 buffer = [];
 
-                for (j = 0; j <= program.length; j++) {
+                for (let j = 0; j <= program.length; j++) {
                     buffer[j] = 0;
                 }
 
                 jumps[i] = buffer;
             }
 
-            for (i = 0; i < program.length; i++) {
+            for (let i = 0; i < program.length; i++) {
                 // Creating a new current line object.
                 currentLineObject = {
                     breakpoint: false,
@@ -1118,6 +1118,7 @@
             memory[address] = parseInt(value);
         }
 
+        /** The methods that should be accessable from outside. */
         methods = {
             OK: OK,
 
