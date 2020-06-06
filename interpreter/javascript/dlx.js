@@ -92,7 +92,7 @@
 
                 if (!state.args) {
                     if (stream.peek() === ",") {
-                        if (/^R[0-9]+$/.test(currentWord) || /^#-?[0-9]+$/.test(currentWord) || /^[0-9]+\(R[0-9]+\)$/.test(currentWord)) {
+                        if (/^R[0-9]+$/.test(currentWord) || /^#-?[0-9]+$/.test(currentWord) || /^-?[0-9]+\(R[0-9]+\)$/.test(currentWord)) {
                             return "arg";
                         }
 
@@ -100,7 +100,7 @@
                     }
 
                     if (/\s/.test(stream.peek()) || stream.eol()) {
-                        if (/^R[0-9]+$/.test(currentWord) || /^#-?[0-9]+$/.test(currentWord) || /^[0-9]+\(R[0-9]+\)$/.test(currentWord)) {
+                        if (/^R[0-9]+$/.test(currentWord) || /^#-?[0-9]+$/.test(currentWord) || /^-?[0-9]+\(R[0-9]+\)$/.test(currentWord)) {
                             return "arg";
                         }
 
