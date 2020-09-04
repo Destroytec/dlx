@@ -1,5 +1,4 @@
-# DLX
+# DLX Interpreter
 
-This is just a DLX interpreter I created over christmas. You can do what you want with it.
+This is an interpreter for the DLX language. [Website](https://destroytec.github.io/dlx/)
 
-(There are also probably many spelling mistakes in there, so proceed with caution!)
