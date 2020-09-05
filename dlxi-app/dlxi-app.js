@@ -1,6 +1,6 @@
-(function (global) {
+(function(global) {
 
-    let Interpreter = (function () {
+    let Interpreter = (function() {
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // General
@@ -31,7 +31,7 @@
         let editor;
 
         /** Gets the current date in a short format. */
-        let getDate = function () {
+        let getDate = function() {
             var date = new Date();
             return (date.getYear() + 1900) +
                 "-" + String(date.getMonth() + 1).padStart(2, '0') +
@@ -42,7 +42,7 @@
         }
 
         /** Saves the current options from options menu to options. */
-        let saveOptions = function () {
+        let saveOptions = function() {
             let value;
 
             // Max steps
@@ -89,7 +89,7 @@
         }
 
         /** Get saved options. */
-        let getSavedOptions = function () {
+        let getSavedOptions = function() {
             let savedOptions = localStorage.getItem("OPTIONS");
 
             if (savedOptions !== null) {
@@ -98,7 +98,7 @@
         }
 
         /** Prints a message into the message box. */
-        let updateMessage = function (message) {
+        let updateMessage = function(message) {
             let element = document.getElementById("message");
 
             if (element.className === "closed") {
@@ -110,9 +110,8 @@
         }
 
         /** Prints the current line in the line box. */
-        let updateLine = function () {
+        let updateLine = function() {
             let line = DLX_Interpreter.getLine();
-            document.getElementById("line").textContent = "Line: " + line;
             editor.removeLineClass(lastLine - 1, "background", "currentLine");
             editor.addLineClass(line - 1, "background", "currentLine");
             lastLine = line;
@@ -120,13 +119,13 @@
         }
 
         /** Resets the line to 1. */
-        let resetLine = function () {
+        let resetLine = function() {
             DLX_Interpreter.setLine(1);
             updateLine();
         }
 
         /** Executes the program. */
-        let execute = function () {
+        let execute = function() {
             let status;
 
             // Updating entries and options.
@@ -148,7 +147,7 @@
         }
 
         /** Executes only a line of the program. */
-        let step = function () {
+        let step = function() {
             let status;
 
             // Updating entries and options.
@@ -170,7 +169,7 @@
         }
 
         /** Do everything needed to run the interpreter. */
-        let start = function () {
+        let start = function() {
             getSavedOptions();
             createEntries();
             createEditor();
@@ -189,7 +188,7 @@
         }
 
         /** Changes the theme. */
-        let changeTheme = function () {
+        let changeTheme = function() {
             if (options.theme === "lighttheme") {
                 options.theme = "darktheme";
                 document.body.className = "darktheme";
@@ -211,8 +210,7 @@
         // Save / load features
 
         /** Example programs for the interpreter. */
-        let examplePrograms = [
-            {
+        let examplePrograms = [{
                 name: "8.5.1.3 Assembler-Code für Tausche",
                 code: "//Registerbelegung: R1: A, R2: B. Hilfsregister zum Tauschen: R3 und R4\n" +
                     "Start:	LW R1, 1000(R0)		//Lade A nach R1\n" +
@@ -348,13 +346,13 @@
         ]
 
         /** Creates/replaces the entries in the save/load box. */
-        let createSavesEntries = function () {
+        let createSavesEntries = function() {
             let currentSave,
                 buffer = "<div id=saveControls class=content><button onclick=Interpreter.save()><h3>Save current state</h3></button>" +
-                    "<button onclick=Interpreter.clearAll()><h3>Clear all</h3></button>" +
-                    "<button onclick=Interpreter.clearEditor()><h3>Clear editor</h3></button>" +
-                    "<button onclick=Interpreter.clearRegistry()><h3>Clear registry</h3></button>" +
-                    "<button onclick=Interpreter.clearMemory()><h3>Clear memory</h3></button></div>";
+                "<button onclick=Interpreter.clearAll()><h3>Clear all</h3></button>" +
+                "<button onclick=Interpreter.clearEditor()><h3>Clear editor</h3></button>" +
+                "<button onclick=Interpreter.clearRegistry()><h3>Clear registry</h3></button>" +
+                "<button onclick=Interpreter.clearMemory()><h3>Clear memory</h3></button></div>";
 
             // Generating the autosaves.
             let autosaves = localStorage.getItem("AUTOSAVES");
@@ -407,7 +405,7 @@
         }
 
         /** Creates a autosave and scheduled a new autosave. */
-        let autosave = function () {
+        let autosave = function() {
             let autosaves = localStorage.getItem("AUTOSAVES");
             let newAutosave = getState();
             newAutosave.name = "Autosave";
@@ -430,14 +428,14 @@
         }
 
         /** Load a example program. */
-        let loadExample = function (id) {
+        let loadExample = function(id) {
             editor.setValue(examplePrograms[id].code);
             clearMemory();
             clearRegistry();
         }
 
         /** Load a autosave state. */
-        let loadAutosave = function (id) {
+        let loadAutosave = function(id) {
             let autosave = JSON.parse(localStorage.getItem("AUTOSAVES"))[id];
 
             if (autosave.code === undefined) {
@@ -448,7 +446,7 @@
         }
 
         /** Loads a state. */
-        let loadSave = function (id) {
+        let loadSave = function(id) {
             let save = JSON.parse(localStorage.getItem("SAVES"))[id];
 
             if (save.code === undefined) {
@@ -459,7 +457,7 @@
         }
 
         /** Saves a state. */
-        let save = function () {
+        let save = function() {
             let save = getState();
             save.name = prompt("Type a name for the new save:", "New save");
 
@@ -478,7 +476,7 @@
         }
 
         /** Removes a save state. */
-        let removeSave = function (id) {
+        let removeSave = function(id) {
             let saves = JSON.parse(localStorage.getItem("SAVES"));
             saves.splice(id, 1);
             localStorage.setItem("SAVES", JSON.stringify(saves));
@@ -486,7 +484,7 @@
         }
 
         /** Renames a state. */
-        let renameSave = function (id) {
+        let renameSave = function(id) {
             let saves = JSON.parse(localStorage.getItem("SAVES"));
             let newName = prompt("The new name of the save:", saves[id].name);
 
@@ -500,7 +498,7 @@
         }
 
         /** Overrides a state. */
-        let overrideSave = function (id) {
+        let overrideSave = function(id) {
             let save = getState();
             let saves = JSON.parse(localStorage.getItem("SAVES"));
             save.name = saves[id].name;
@@ -515,7 +513,7 @@
         // Registry / Memory / Editor manipulation
 
         /** Returns the current editor, memory and registry values and the date it was created. */
-        let getState = function () {
+        let getState = function() {
             let state = {};
 
             // Getting the date and the code of the editor.
@@ -538,7 +536,7 @@
         }
 
         /** Sets a state in the editor, memory and registry. */
-        let setState = function (state) {
+        let setState = function(state) {
             // Setting the code into the editor.
             editor.setValue(state.code);
 
@@ -554,12 +552,12 @@
         }
 
         /** Clears editor. */
-        let clearEditor = function () {
+        let clearEditor = function() {
             editor.setValue("");
         }
 
         /** Clears the registry. */
-        let clearRegistry = function () {
+        let clearRegistry = function() {
             // Setting all registry entries (except R0) to empty string.
             for (let i = 1; i < options.numOfRegistryEntries; i++) {
                 document.getElementById("R" + i).value = "";
@@ -567,7 +565,7 @@
         }
 
         /** Clears the memory. */
-        let clearMemory = function () {
+        let clearMemory = function() {
             // Setting all memory cells to empty string.
             for (let i = 0; i < options.numOfMemoryEntries; i++) {
                 document.getElementById(i * 4 + options.memoryStart).value = "";
@@ -575,14 +573,14 @@
         }
 
         /** Clears editor, registry and memory. */
-        let clearAll = function () {
+        let clearAll = function() {
             clearEditor();
             clearRegistry();
             clearMemory();
         }
 
         /** Creates the entries of the interpreter. */
-        let createEntries = function () {
+        let createEntries = function() {
             // Declaring variables.
             var buffer = "",
                 id,
@@ -619,14 +617,14 @@
         }
 
         /** Creates the editor. */
-        let createEditor = function () {
+        let createEditor = function() {
             editor = CodeMirror(document.getElementById("editor"), editorOptions);
         }
 
         //TODO: Write a better interface to update only changed entries. 2020-01-12
 
         /** Writes all entries in the interpreter. */
-        let setEntriesToInterpreter = function () {
+        let setEntriesToInterpreter = function() {
             let address;
 
             for (let i = 1; i < options.numOfRegistryEntries; i++) {
@@ -640,7 +638,7 @@
         }
 
         /** Get all entries from the interpreter. */
-        let getEntriesFromInterpreter = function () {
+        let getEntriesFromInterpreter = function() {
             let value,
                 address;
 
@@ -666,7 +664,7 @@
         // Box switching
 
         /** Shows/hides the info box. */
-        let switchInfoBox = function () {
+        let switchInfoBox = function() {
             let element = document.getElementById("info");
 
             // Switching the expand more/less symbol and the class.
@@ -680,7 +678,7 @@
         }
 
         /** Shows/hides the options box. */
-        let switchOptionsBox = function () {
+        let switchOptionsBox = function() {
             let element = document.getElementById("options");
 
             // Switching the expand more/less symbol and the class and setting the values if expanding.
@@ -699,7 +697,7 @@
         }
 
         /** Shows/hides the save/load box. */
-        let switchSavesBox = function () {
+        let switchSavesBox = function() {
             let element = document.getElementById("saves");
 
             // Switching the expand more/less symbol and the class and creating the saves if expanding.
@@ -715,7 +713,7 @@
         }
 
         /** Shows/hides the message box. */
-        let switchMessageBox = function () {
+        let switchMessageBox = function() {
             let element = document.getElementById("message");
 
             // Switching the expand more/less symbol and the class.
@@ -729,7 +727,7 @@
         }
 
         /** Shows/hides the controls. */
-        let switchControlBox = function () {
+        let switchControlBox = function() {
             let element = document.getElementById("interpreterControls");
 
             // Switching the expand more/less symbol and the class and setting the interpreter in interpreter / editor mode.
