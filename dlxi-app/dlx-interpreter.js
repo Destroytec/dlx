@@ -756,8 +756,8 @@
         /** The options of the interpreter. */
         let options;
 
-        /** The program that the interpreter should interpret. */
-        let program;
+        /** The instructions that the interpreter should interpret. */
+        let instructions;
 
         /** A reference for the labels in the program. */
         let labels;
@@ -780,13 +780,13 @@
 
         /** Sets the current line. */
         let setLine = function (newLine) {
-            if (program === undefined) {
+            if (instructions === undefined) {
                 line = 1;
                 return;
             }
 
-            if (newLine > program.length) {
-                throw "The new line is too big, program has only " + program.length + " lines.";
+            if (newLine > instructions.length) {
+                throw "The new line is too big, program has only " + instructions.length + " lines.";
             }
 
             line = newLine;
@@ -836,10 +836,10 @@
             // Resetting jumps.
             jumps = [];
 
-            for (let i = 0; i <= program.length; i++) {
+            for (let i = 0; i <= instructions.length; i++) {
                 buffer = [];
 
-                for (let j = 0; j <= program.length; j++) {
+                for (let j = 0; j <= instructions.length; j++) {
                     buffer[j] = 0;
                 }
 
@@ -847,7 +847,7 @@
             }
 
             // Resetting line if needed.
-            if (line > program.length) {
+            if (line > instructions.length) {
                 line = 1;
             }
 
@@ -858,16 +858,16 @@
                 }
 
                 // Checking if there is a breakpoint.
-                if (program[line - 1].breakpoint && !isFirstLine) {
+                if (instructions[line - 1].breakpoint && !isFirstLine) {
                     return OK;
                 }
 
                 isFirstLine = false;
 
-                status = run(program[line - 1]);
+                status = run(instructions[line - 1]);
 
                 // Checking if the interpreter reached the end of the program.
-                if (status === OK && line > program.length) {
+                if (status === OK && line > instructions.length) {
                     line = 1;
                     return getDlxInterpreterError.haltNotFound();
                 }
@@ -892,15 +892,15 @@
             let status;
 
             // Resetting line if needed.
-            if (line > program.length) {
+            if (line > instructions.length) {
                 line = 1;
             }
 
             // Run one line
-            status = run(program[line - 1]);
+            status = run(instructions[line - 1]);
 
             // Checking if everything is ok.
-            if (status === OK && line > program.length) {
+            if (status === OK && line > instructions.length) {
                 line = 1;
                 return getDlxInterpreterError.haltNotFound();
             }
@@ -913,23 +913,177 @@
             return "Error in line " + (line) + ": " + status;
         }
 
-        /** Sets a new program. */
-        let setProgram = function (newProgram) {
+        /** Validates an instruction. */
+        let validateInstruction = function (instruction) {
+            let commandTypeValue = commandType[instruction.opcode];
+
+            // Checking if the opcode exists.
+            if (commandTypeValue === undefined) {
+                return getDlxInterpreterError.opcodeNotFound(instruction.opcode);
+            }
+
+            // Checking if the arguments are valid.
+            if (commandTypeValue === "R" || commandTypeValue === "I") {
+                // Checking number of arguments.
+                if (instruction.args.length != 3) {
+                    return getDlxInterpreterError.numberOfArguments(instruction.opcode, "3", instruction.args.length);
+                }
+
+                // Checking the type of the arguments.
+                if (!isRegistryAddress(instruction.args[0])) {
+                    return getDlxInterpreterError.addressExpected("registry", "first", instruction.args[0]);
+                }
+                if (!isRegistryAddress(instruction.args[1])) {
+                    return getDlxInterpreterError.addressExpected("registry", "second", instruction.args[1]);
+                }
+                if (commandTypeValue === "R") {
+                    if (!isRegistryAddress(instruction.args[2])) {
+                        return getDlxInterpreterError.addressExpected("registry", "third", instruction.args[2]);
+                    }
+                } else {
+                    if (!isImmediateValue(instruction.args[2])) {
+                        return getDlxInterpreterError.immediateValueExpected("third", instruction.args[2]);
+                    }
+                }
+
+                // Checking if it tries to override R0.
+                if (instruction.args[0] === "R0") {
+                    return getDlxInterpreterError.readOnly();
+                }
+            } else if (commandTypeValue === "J") {
+                if (instruction.opcode === "BNEZ" || instruction.opcode === "BEQZ") {
+                    // Checking number of arguments.
+                    if (instruction.args.length != 2) {
+                        return getDlxInterpreterError.numberOfArguments(instruction.opcode, "2", instruction.args.length);
+                    }
+
+                    // Checking the type of the arguments.
+                    if (!isRegistryAddress(instruction.args[0])) {
+                        return getDlxInterpreterError.addressExpected("registry", "first", instruction.args[0]);
+                    }
+                } else {
+                    // Checking number of arguments.
+                    if (instruction.args.length != 1) {
+                        return getDlxInterpreterError.numberOfArguments(instruction.opcode, "1", instruction.args.length);
+                    }
+
+                    if (instruction.opcode === "JR" || instruction.opcode === "JALR") {
+                        // Checking the type of the arguments.
+                        if (!isRegistryAddress(instruction.args[0])) {
+                            return getDlxInterpreterError.addressExpected("registry", "first", instruction.args[0]);
+                        }
+                    }
+                }
+            } else if (instruction.opcode === "SW" || instruction.opcode === "LW") {
+                // Checking number of arguments.
+                if (instruction.args.length != 2) {
+                    return getDlxInterpreterError.numberOfArguments(instruction.opcode, "2", instruction.args.length);
+                }
+
+                if (instruction.opcode === "SW") {
+                    // Checking the type of the arguments.
+                    if (!isIndirectMemoryAddress(instruction.args[0])) {
+                        return getDlxInterpreterError.addressExpected("memory", "first", instruction.args[0]);
+                    }
+                    if (!isRegistryAddress(instruction.args[1])) {
+                        return getDlxInterpreterError.addressExpected("registry", "second", instruction.args[1]);
+                    }
+                } else {
+                    // Checking the type of the arguments.
+                    if (!isRegistryAddress(instruction.args[0])) {
+                        return getDlxInterpreterError.addressExpected("registry", "first", instruction.args[0]);
+                    }
+                    if (!isIndirectMemoryAddress(instruction.args[1])) {
+                        return getDlxInterpreterError.addressExpected("memory", "second", instruction.args[1]);
+                    }
+
+                    // Checking if it tries to override R0.
+                    if (instruction.args[0] === "R0") {
+                        return getDlxInterpreterError.readOnly();
+                    }
+                }
+            } else if (instruction.opcode === "HALT") {
+                // Checking number of arguments.
+                if (instruction.args.length != 0) {
+                    return getDlxInterpreterError.numberOfArguments("HALT", "0", instruction.args.length);
+                }
+            }
+
+            return OK;
+        }
+
+        let createInstruction = function (raw) {
             let rWrongLabel = /^\s*.+(?=:)/,
                 rRightLabel = /^\s*[.\S]+(?=:)/,
                 rBreakpoint = /^>/,
                 rOpcode = /^\w+/,
                 label,
-                i,
-                currentLine,
-                currentLineObject,
-                commandTypeValue,
-                buffer;
+                instruction = {
+                    label: false,
+                    status: OK,
+                    breakpoint: false,
+                    opcode: "",
+                    args: []
+                };
+
+            // Deleting the comment from the line.
+            raw = raw.replace(/\/\/.*/, "").trim();
+
+            // Checking for correct label.
+            if (rWrongLabel.test(raw) && !rRightLabel.test(raw)) {
+                instruction.status = "Label \"" + rWrongLabel.exec(raw)[0] + "\" does contain whitespace.";
+                return instruction;
+            }
+
+            // Adding the label, if existing.
+            if (rRightLabel.test(raw)) {
+                label = rRightLabel.exec(raw)[0];
+
+                if (labels[label] !== undefined) {
+                    instruction.status = "You used \"" + label + "\" at line " + labels[label] + "before.";
+                    return instruction;
+                }
+
+                instruction.label = label;
+                raw = raw.replace(/^.+:/, "").trim();
+            }
+
+            // Adding breakpoint information when breakpoint found.
+            if (rBreakpoint.test(raw)) {
+                instruction.breakpoint = true;
+                raw = raw.replace(rBreakpoint, "").trim();
+            }
+
+            // If there is at least one word, it must be the opcode.
+            if (rOpcode.test(raw)) {
+                instruction.opcode = rOpcode.exec(raw)[0];
+                raw = raw.replace(rOpcode, "").trim();
+
+
+                // If there are still words, it must be the arguments, splitted by commas.
+                if (raw !== "") {
+                    instruction.args = raw.split(/\s*,\s*/);
+                }
+
+                let status = validateInstruction(instruction);
+                if (status !== OK) {
+                    instruction.status = status;
+                    return instruction;
+                }
+            }
+
+            return instruction;
+        }
+
+        /** Sets a new program. */
+        let setProgram = function (newProgram) {
+            let buffer,
+                program = newProgram.split("\n");
 
             line = 1;
-            program = newProgram.split("\n");
             labels = {};
             jumps = [];
+            instructions = [];
 
             // Creating jump array.
             for (let i = 0; i <= program.length; i++) {
@@ -943,148 +1097,17 @@
             }
 
             for (let i = 0; i < program.length; i++) {
-                // Creating a new current line object.
-                currentLineObject = {
-                    breakpoint: false,
-                    opcode: "",
-                    args: []
-                };
+                let instruction = createInstruction(program[i]);
+                instructions[i] = instruction;
 
-                // Deleting the comment from the line.
-                currentLine = program[i].replace(/\/\/.*/, "").trim();
-
-                // Checking for correct label.
-                if (rWrongLabel.test(currentLine) && !rRightLabel.test(currentLine)) {
-                    program = [];
-                    return "Error in line " + (i + 1) + ": " + "Label \"" + rWrongLabel.exec(currentLine)[0] + "\" does contain whitespace.";
+                if (instruction.label) {
+                    labels[instruction.label] = i + 1;
                 }
 
-                // Adding the label, if existing.
-                if (rRightLabel.test(currentLine)) {
-                    label = rRightLabel.exec(currentLine)[0];
-
-                    if (labels[label] !== undefined) {
-                        program = [];
-                        return "Error in line " + (i + 1) + ": " + "You used \"" + label + "\" at line " + labels[label] + "before.";
-                    }
-
-                    labels[label] = i + 1;
-                    currentLine = currentLine.replace(/^.+:/, "").trim();
+                if (instruction.status !== OK) {
+                    instructions = undefined;
+                    return "Error in line " + (i + 1) + ": " + instruction.status;
                 }
-
-                // Adding breakpoint information when breakpoint found.
-                if (rBreakpoint.test(currentLine)) {
-                    currentLineObject.breakpoint = true;
-                    currentLine = currentLine.replace(rBreakpoint, "").trim();
-                }
-
-                // If there is at least one word, it must be the opcode.
-                if (rOpcode.test(currentLine)) {
-                    currentLineObject.opcode = rOpcode.exec(currentLine)[0];
-                    currentLine = currentLine.replace(rOpcode, "").trim();
-
-
-                    // If there are still words, it must be the arguments, splitted by commas.
-                    if (currentLine !== "") {
-                        currentLineObject.args = currentLine.split(/\s*,\s*/);
-                    }
-
-                    commandTypeValue = commandType[currentLineObject.opcode];
-
-                    // Checking if the opcode exists.
-                    if (commandTypeValue === undefined) {
-                        return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.opcodeNotFound(currentLineObject.opcode);
-                    }
-
-                    // Checking if the arguments are valid.
-                    if (commandTypeValue === "R" || commandTypeValue === "I") {
-                        // Checking number of arguments.
-                        if (currentLineObject.args.length != 3) {
-                            return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.numberOfArguments(currentLineObject.opcode, "3", currentLineObject.args.length);
-                        }
-
-                        // Checking the type of the arguments.
-                        if (!isRegistryAddress(currentLineObject.args[0])) {
-                            return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.addressExpected("registry", "first", currentLineObject.args[0]);
-                        }
-                        if (!isRegistryAddress(currentLineObject.args[1])) {
-                            return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.addressExpected("registry", "second", currentLineObject.args[1]);
-                        }
-                        if (commandTypeValue === "R") {
-                            if (!isRegistryAddress(currentLineObject.args[2])) {
-                                return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.addressExpected("registry", "third", currentLineObject.args[2]);
-                            }
-                        } else {
-                            if (!isImmediateValue(currentLineObject.args[2])) {
-                                return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.immediateValueExpected("third", currentLineObject.args[2]);
-                            }
-                        }
-
-                        // Checking if it tries to override R0.
-                        if (currentLineObject.args[0] === "R0") {
-                            return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.readOnly();
-                        }
-                    } else if (commandTypeValue === "J") {
-                        if (currentLineObject.opcode === "BNEZ" || currentLineObject.opcode === "BEQZ") {
-                            // Checking number of arguments.
-                            if (currentLineObject.args.length != 2) {
-                                return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.numberOfArguments(currentLineObject.opcode, "2", currentLineObject.args.length);
-                            }
-
-                            // Checking the type of the arguments.
-                            if (!isRegistryAddress(currentLineObject.args[0])) {
-                                return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.addressExpected("registry", "first", currentLineObject.args[0]);
-                            }
-                        } else {
-                            // Checking number of arguments.
-                            if (currentLineObject.args.length != 1) {
-                                return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.numberOfArguments(currentLineObject.opcode, "1", currentLineObject.args.length);
-                            }
-
-                            if (currentLineObject.opcode === "JR" || currentLineObject.opcode === "JALR") {
-                                // Checking the type of the arguments.
-                                if (!isRegistryAddress(currentLineObject.args[0])) {
-                                    return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.addressExpected("registry", "first", currentLineObject.args[0]);
-                                }
-                            }
-                        }
-                    } else if (currentLineObject.opcode === "SW" || currentLineObject.opcode === "LW") {
-                        // Checking number of arguments.
-                        if (currentLineObject.args.length != 2) {
-                            return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.numberOfArguments(currentLineObject.opcode, "2", currentLineObject.args.length);
-                        }
-
-                        if (currentLineObject.opcode === "SW") {
-                            // Checking the type of the arguments.
-                            if (!isIndirectMemoryAddress(currentLineObject.args[0])) {
-                                return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.addressExpected("memory", "first", currentLineObject.args[0]);
-                            }
-                            if (!isRegistryAddress(currentLineObject.args[1])) {
-                                return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.addressExpected("registry", "second", currentLineObject.args[1]);
-                            }
-                        } else {
-                            // Checking the type of the arguments.
-                            if (!isRegistryAddress(currentLineObject.args[0])) {
-                                return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.addressExpected("registry", "first", currentLineObject.args[0]);
-                            }
-                            if (!isIndirectMemoryAddress(currentLineObject.args[1])) {
-                                return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.addressExpected("memory", "second", currentLineObject.args[1]);
-                            }
-
-                            // Checking if it tries to override R0.
-                            if (currentLineObject.args[0] === "R0") {
-                                return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.readOnly();
-                            }
-                        }
-                    } else if (currentLineObject.opcode === "HALT") {
-                        // Checking number of arguments.
-                        if (currentLineObject.args.length != 0) {
-                            return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.numberOfArguments("HALT", "0", currentLineObject.args.length);
-                        }
-                    }
-                }
-
-                program[i] = currentLineObject;
             }
 
             return OK;
