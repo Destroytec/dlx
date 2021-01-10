@@ -143,6 +143,9 @@
             if (status !== DLX_Interpreter.OK) {
                 updateMessage(status);
                 return;
+            } else {
+                updateMessage("OK");
+                return;
             }
         }
 
@@ -164,6 +167,9 @@
             // Checking if everything is ok.
             if (status !== DLX_Interpreter.OK) {
                 updateMessage(status);
+                return;
+            } else {
+                updateMessage("OK");
                 return;
             }
         }
