@@ -435,6 +435,7 @@
 
         /** Load a example program. */
         let loadExample = function(id) {
+            clearEditor();
             editor.setValue(examplePrograms[id].code);
             clearMemory();
             clearRegistry();
@@ -543,6 +544,8 @@
 
         /** Sets a state in the editor, memory and registry. */
         let setState = function(state) {
+            clearEditor();
+
             // Setting the code into the editor.
             editor.setValue(state.code);
 
@@ -560,6 +563,12 @@
         /** Clears editor. */
         let clearEditor = function() {
             editor.setValue("");
+
+            // Make sure the interpreter is in editor mode.
+            let element = document.getElementById("interpreterControls");
+            if (element.className === "expanded") {
+                switchControlBox();
+            }
         }
 
         /** Clears the registry. */
