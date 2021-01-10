@@ -5,18 +5,78 @@
         ///////////////////////////////////////////////////////////////////////////////////////////
         // General
 
-        // Error messages.
-        let ERROR_ADDRESS_EXPECTED = "A $TYPE$ address was as $POS$ argument expected, but got \"$ADDRESS$\".";
-        let ERROR_NUMBER_OF_ARGUMENTS = "$NAME$ needs $EXPECTED_NUMBER$ arguments, but got $NUMBER$."
-        let ERROR_NO_VALUE = "$TYPE$ entry \"$ADDRESS$\" does not contain a number."
-        let ERROR_READ_ONLY = "R0 is read-only.";
-        let ERROR_LABEL_NOT_FOUND = "Label \"$LABEL$\" not found.";
-        let ERROR_OPCODE_NOT_FOUND = "Opcode \"$OPCODE$\" not found.";
-        let ERROR_INVALID_DIRECT_ADDRESS = "The memory address \"$DIRECT_ADDRESS$\" is not valid. It was calculated from\"$ADDRESS$\".";
-        let ERROR_HALT_NOT_FOUND = "The interpreter run out of lines because it has not reached a \"HALT\" opcode.";
-        let ERROR_IMMEDIATE_VALUE_EXPECTED = "A immediate value was as $POS$ argument expected, but got \"$VALUE$\".";
-        let ERROR_TOO_MANY_JUMPS = "The interpreter jumped from line $FROM_LINE$ to line $TO_LINE$ too many times. You are probably in a loop. If not, raise the maximum jumps in the options.";
-        let ERROR_TOO_MANY_STEPS = "The interpreter interpreted too many lines. You are probably in a loop. If not, raise the maximum steps in the options.";
+        /** Contains methods to get error messages. */
+        let getDlxInterpreterError = {
+            /** Contains error messages for the DLX interpreter with placeholder. */
+            ERROR_MSG: {
+                ADDRESS_EXPECTED: "A $TYPE$ address was as $POS$ argument expected, but got \"$ADDRESS$\".",
+                NUMBER_OF_ARGUMENTS: "$NAME$ needs $EXPECTED_NUMBER$ arguments, but got $NUMBER$.",
+                NO_VALUE: "$TYPE$ entry \"$ADDRESS$\" does not contain a number.",
+                READ_ONLY: "R0 is read-only.",
+                LABEL_NOT_FOUND: "Label \"$LABEL$\" not found.",
+                OPCODE_NOT_FOUND: "Opcode \"$OPCODE$\" not found.",
+                INVALID_DIRECT_ADDRESS: "The memory address \"$DIRECT_ADDRESS$\" is not valid. It was calculated from\"$ADDRESS$\".",
+                HALT_NOT_FOUND: "The interpreter run out of lines because it has not reached a \"HALT\" opcode.",
+                IMMEDIATE_VALUE_EXPECTED: "A immediate value was as $POS$ argument expected, but got \"$VALUE$\".",
+                TOO_MANY_JUMPS: "The interpreter jumped from line $FROM_LINE$ to line $TO_LINE$ too many times. You are probably in a loop. If not, raise the maximum jumps in the options.",
+                TOO_MANY_STEPS: "The interpreter interpreted too many lines. You are probably in a loop. If not, raise the maximum steps in the options."
+            },
+
+            /** Returns an error message for an unexpected address. */
+            addressExpected: function (type, pos, address) {
+                return this.ERROR_MSG.ADDRESS_EXPECTED.replace("$TYPE$", type).replace("$POS$", pos).replace("$ADDRESS$", address);
+            },
+
+            /** Returns an error message for a wrong number of arguments. */
+            numberOfArguments: function (name, expectedNumber, receivedNumber) {
+                return this.ERROR_MSG.NUMBER_OF_ARGUMENTS.replace("$NAME$", name).replace("$EXPECTED_NUMBER$", expectedNumber).replace("$NUMBER$", receivedNumber);
+            },
+
+            /** Returns an error message for entries that contains no value. */
+            noValue: function (type, address) {
+                return this.ERROR_MSG.NO_VALUE.replace("$TYPE$", type).replace("$ADDRESS$", address);
+            },
+
+            /** Returns an error message for trying writing R0. */
+            readOnly: function () {
+                return this.ERROR_MSG.READ_ONLY;
+            },
+
+            /** Returns an error message for not found labels. */
+            labelNotFound: function (label) {
+                return this.ERROR_MSG.LABEL_NOT_FOUND.replace("$LABEL$", label);
+            },
+
+            /** Returns an error message for not found opcodes. */
+            opcodeNotFound: function (opcode) {
+                return this.ERROR_MSG.OPCODE_NOT_FOUND.replace("$OPCODE$", opcode);
+            },
+
+            /** Returns an error message for invalid direct address. */
+            invalidDirectAddress: function (directAddress, address) {
+                return this.ERROR_MSG.INVALID_DIRECT_ADDRESS.replace("$DIRECT_ADDRESS$", directAddress).replace("$ADDRESS$", address);
+            },
+
+            /** Returns an error message for a not existing HALT. */
+            haltNotFound: function () {
+                return this.ERROR_MSG.HALT_NOT_FOUND;
+            },
+
+            /** Returns an error message for an unexpected immediate value. */
+            immediateValueExpected: function (pos, value) {
+                return this.ERROR_MSG.IMMEDIATE_VALUE_EXPECTED.replace("$POS$", pos).replace("$VALUE$", value);
+            },
+
+            /** Returns an error message for too many jumps. */
+            tooManyJumps: function (fromLine, toLine) {
+                return this.ERROR_MSG.TOO_MANY_JUMPS.replace("$FROM_LINE$", fromLine).replace("$TO_LINE$", toLine);
+            },
+
+            /** Returns an error message for too many steps. */
+            tooManySteps: function () {
+                return this.ERROR_MSG.TOO_MANY_STEPS;
+            }
+        };
 
         /** Status code if everything is fine. */
         let OK = 1;
@@ -41,19 +101,19 @@
 
                 // Checking if the indirect value is a number.
                 if (isNaN(indirectValue)) {
-                    return ERROR_NO_VALUE.replace("$TYPE$", "Registry").replace("$ADDRESS$", /R[0-9]+/.exec(args[1])[0]);
+                    return getDlxInterpreterError.noValue("Registry", /R[0-9]+/.exec(args[1])[0]);
                 }
 
                 address = directValue + indirectValue;
 
                 // Checking if it is a valid direct address.
                 if (!isDirectMemoryAddress(address)) {
-                    return ERROR_INVALID_DIRECT_ADDRESS.replace("$DIRECT_ADDRESS$", address).replace("$ADDRESS$", args[1]);
+                    return getDlxInterpreterError.invalidDirectAddress(address, args[1]);
                 }
 
                 // Checking if entries have values.
                 if (isNaN(memory[address])) {
-                    return ERROR_NO_VALUE.replace("$TYPE$", "Memory").replace("$ADDRESS$", address);
+                    return getDlxInterpreterError.noValue("Memory", address);
                 }
 
                 // Actual code.
@@ -73,19 +133,19 @@
 
                 // Checking if the indirect value is a number.
                 if (isNaN(indirectValue)) {
-                    return ERROR_NO_VALUE.replace("$TYPE$", "Registry").replace("$ADDRESS$", /R[0-9]+/.exec(args[0])[0]);
+                    return getDlxInterpreterError.noValue("Registry", /R[0-9]+/.exec(args[0])[0]);
                 }
 
                 address = directValue + indirectValue;
 
                 // Checking if it is a valid direct address.
                 if (!isDirectMemoryAddress(address)) {
-                    return ERROR_INVALID_DIRECT_ADDRESS.replace("$DIRECT_ADDRESS$", address).replace("$ADDRESS$", args[0]);
+                    return getDlxInterpreterError.invalidDirectAddress(address, args[0]);
                 }
 
                 // Checking if entries have values.
                 if (isNaN(registry[args[1]])) {
-                    return ERROR_NO_VALUE.replace("$TYPE$", "Registry").replace("$ADDRESS$", args[1]);
+                    return getDlxInterpreterError.noValue("Registry", args[1]);
                 }
 
                 // Actual code.
@@ -526,19 +586,19 @@
             BNEZ: function (args) {
                 // Checking the type of the arguments.
                 if (labels[args[1]] === undefined) {
-                    return ERROR_LABEL_NOT_FOUND.replace("$LABEL$", args[1]);
+                    return getDlxInterpreterError.labelNotFound(args[1]);
                 }
 
                 // Checking if entries have values.
                 if (isNaN(registry[args[0]])) {
-                    return ERROR_NO_VALUE.replace("$TYPE$", "Registry").replace("$ADDRESS$", args[0]);
+                    return getDlxInterpreterError.noValue("Registry", args[0]);
                 }
 
                 // Actual code.
                 if (registry[args[0]] !== 0) {
                     // Counting jump and checking if it was too much.
                     if (++jumps[line - 1][labels[args[1]]] > options.maxJumps) {
-                        return ERROR_TOO_MANY_JUMPS.replace("$FROM_LINE$", (line - 1)).replace("$TO_LINE$", (labels[args[1]]));
+                        return getDlxInterpreterError.tooManyJumps((line - 1), (labels[args[1]]));
                     }
 
                     line = labels[args[1]];
@@ -551,19 +611,19 @@
             BEQZ: function (args) {
                 // Checking the type of the arguments.
                 if (labels[args[1]] === undefined) {
-                    return ERROR_LABEL_NOT_FOUND.replace("$LABEL$", args[1]);
+                    return getDlxInterpreterError.labelNotFound(args[1]);
                 }
 
                 // Checking if entries have values.
                 if (isNaN(registry[args[0]])) {
-                    return ERROR_NO_VALUE.replace("$TYPE$", "Registry").replace("$ADDRESS$", args[0]);
+                    return getDlxInterpreterError.noValue("Registry", args[0]);
                 }
 
                 // Actual code.
                 if (registry[args[0]] === 0) {
                     // Counting jump and checking if it was too much.
                     if (++jumps[line - 1][labels[args[1]]] > options.maxJumps) {
-                        return ERROR_TOO_MANY_JUMPS.replace("$FROM_LINE$", (line - 1)).replace("$TO_LINE$", (labels[args[1]]));
+                        return getDlxInterpreterError.tooManyJumps((line - 1), (labels[args[1]]));
                     }
 
                     line = labels[args[1]];
@@ -576,12 +636,12 @@
             J: function (args) {
                 // Checking the type of the arguments.
                 if (labels[args[0]] === undefined) {
-                    return ERROR_LABEL_NOT_FOUND.replace("$LABEL$", args[0]);
+                    return getDlxInterpreterError.labelNotFound(args[0]);
                 }
 
                 // Counting jump and checking if it was too much.
                 if (++jumps[line - 1][labels[args[0]]] > options.maxJumps) {
-                    return ERROR_TOO_MANY_JUMPS.replace("$FROM_LINE$", (line - 1)).replace("$TO_LINE$", labels[args[0]]);
+                    return getDlxInterpreterError.tooManyJumps((line - 1), labels[args[0]]);
                 }
 
                 // Actual code.
@@ -594,12 +654,12 @@
             JR: function (args) {
                 // Checking if entries have values.
                 if (isNaN(registry[args[0]])) {
-                    return ERROR_NO_VALUE.replace("$TYPE$", "Registry").replace("$ADDRESS$", args[0]);
+                    return getDlxInterpreterError.noValue("Registry", args[0]);
                 }
 
                 // Counting jump and checking if it was too much.
                 if (++jumps[line - 1][registry[args[0]]] > options.maxJumps) {
-                    return ERROR_TOO_MANY_JUMPS.replace("$FROM_LINE$", (line - 1)).replace("$TO_LINE$", (registry[args[0]]));
+                    return getDlxInterpreterError.tooManyJumps((line - 1), (registry[args[0]]));
                 }
 
                 // Actual code.
@@ -612,12 +672,12 @@
             JAL: function (args) {
                 // Checking the type of the arguments.
                 if (labels[args[0]] === undefined) {
-                    return ERROR_LABEL_NOT_FOUND.replace("$LABEL$", args[0]);
+                    return getDlxInterpreterError.labelNotFound(args[0]);
                 }
 
                 // Counting jump and checking if it was too much.
                 if (++jumps[line - 1][labels[args[0]]] > options.maxJumps) {
-                    return ERROR_TOO_MANY_JUMPS.replace("$FROM_LINE$", (line - 1)).replace("$TO_LINE$", (labels[args[0]]));
+                    return getDlxInterpreterError.tooManyJumps((line - 1), (labels[args[0]]));
                 }
 
                 // Actual code.
@@ -631,12 +691,12 @@
             JALR: function (args) {
                 // Checking if entries have values.
                 if (isNaN(registry[args[0]])) {
-                    return ERROR_NO_VALUE.replace("$TYPE$", "Registry").replace("$ADDRESS$", args[0]);
+                    return getDlxInterpreterError.noValue("Registry", args[0]);
                 }
 
                 // Counting jump and checking if it was too much.
                 if (++jumps[line - 1][registry[args[0]]] > options.maxJumps) {
-                    return ERROR_TOO_MANY_JUMPS.replace("$FROM_LINE$", (line - 1)).replace("$TO_LINE$", (registry[args[0]]));
+                    return getDlxInterpreterError.tooManyJumps((line - 1), (registry[args[0]]));
                 }
 
                 // Actual code.
@@ -736,10 +796,10 @@
         let checkRCommand = function (name, args) {
             // Checking if entries have values.
             if (isNaN(registry[args[1]])) {
-                return ERROR_NO_VALUE.replace("$TYPE$", "Registry").replace("$ADDRESS$", args[1]);
+                return getDlxInterpreterError.noValue("Registry", args[1]);
             }
             if (isNaN(registry[args[2]])) {
-                return ERROR_NO_VALUE.replace("$TYPE$", "Registry").replace("$ADDRESS$", args[2]);
+                return getDlxInterpreterError.noValue("Registry", args[2]);
             }
 
             return OK;
@@ -749,7 +809,7 @@
         let checkICommand = function (name, args) {
             // Checking if entries have values.
             if (isNaN(registry[args[1]])) {
-                return ERROR_NO_VALUE.replace("$TYPE$", "Registry").replace("$ADDRESS$", args[1]);
+                return getDlxInterpreterError.noValue("Registry", args[1]);
             }
 
             return OK;
@@ -794,7 +854,7 @@
             while (true) {
                 // Checking if the program runs too many steps.
                 if (++totalSteps > options.maxSteps) {
-                    return ERROR_TOO_MANY_STEPS;
+                    return getDlxInterpreterError.tooManySteps();
                 }
 
                 // Checking if there is a breakpoint.
@@ -809,7 +869,7 @@
                 // Checking if the interpreter reached the end of the program.
                 if (status === OK && line > program.length) {
                     line = 1;
-                    return ERROR_HALT_NOT_FOUND;
+                    return getDlxInterpreterError.haltNotFound();
                 }
 
                 // Checking if everything else is fine.
@@ -842,7 +902,7 @@
             // Checking if everything is ok.
             if (status === OK && line > program.length) {
                 line = 1;
-                return ERROR_HALT_NOT_FOUND;
+                return getDlxInterpreterError.haltNotFound();
             }
 
             if (status === HALT || status === OK) {
@@ -933,93 +993,93 @@
 
                     // Checking if the opcode exists.
                     if (commandTypeValue === undefined) {
-                        return "Error in line " + (i + 1) + ": " + ERROR_OPCODE_NOT_FOUND.replace("$OPCODE$", currentLineObject.opcode);
+                        return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.opcodeNotFound(currentLineObject.opcode);
                     }
 
                     // Checking if the arguments are valid.
                     if (commandTypeValue === "R" || commandTypeValue === "I") {
                         // Checking number of arguments.
                         if (currentLineObject.args.length != 3) {
-                            return "Error in line " + (i + 1) + ": " + ERROR_NUMBER_OF_ARGUMENTS.replace("$NAME$", currentLineObject.opcode).replace("$EXPECTED_NUMBER$", "3").replace("$NUMBER$", currentLineObject.args.length);
+                            return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.numberOfArguments(currentLineObject.opcode, "3", currentLineObject.args.length);
                         }
 
                         // Checking the type of the arguments.
                         if (!isRegistryAddress(currentLineObject.args[0])) {
-                            return "Error in line " + (i + 1) + ": " + ERROR_ADDRESS_EXPECTED.replace("$TYPE$", "registry").replace("$POS$", "first").replace("$ADDRESS$", currentLineObject.args[0]);
+                            return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.addressExpected("registry", "first", currentLineObject.args[0]);
                         }
                         if (!isRegistryAddress(currentLineObject.args[1])) {
-                            return "Error in line " + (i + 1) + ": " + ERROR_ADDRESS_EXPECTED.replace("$TYPE$", "registry").replace("$POS$", "second").replace("$ADDRESS$", currentLineObject.args[1]);
+                            return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.addressExpected("registry", "second", currentLineObject.args[1]);
                         }
                         if (commandTypeValue === "R") {
                             if (!isRegistryAddress(currentLineObject.args[2])) {
-                                return "Error in line " + (i + 1) + ": " + ERROR_ADDRESS_EXPECTED.replace("$TYPE$", "registry").replace("$POS$", "third").replace("$ADDRESS$", currentLineObject.args[2]);
+                                return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.addressExpected("registry", "third", currentLineObject.args[2]);
                             }
                         } else {
                             if (!isImmediateValue(currentLineObject.args[2])) {
-                                return "Error in line " + (i + 1) + ": " + ERROR_IMMEDIATE_VALUE_EXPECTED.replace("$POS$", "third").replace("$VALUE$", currentLineObject.args[2]);
+                                return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.immediateValueExpected("third", currentLineObject.args[2]);
                             }
                         }
 
                         // Checking if it tries to override R0.
                         if (currentLineObject.args[0] === "R0") {
-                            return "Error in line " + (i + 1) + ": " + ERROR_READ_ONLY;
+                            return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.readOnly();
                         }
                     } else if (commandTypeValue === "J") {
                         if (currentLineObject.opcode === "BNEZ" || currentLineObject.opcode === "BEQZ") {
                             // Checking number of arguments.
                             if (currentLineObject.args.length != 2) {
-                                return "Error in line " + (i + 1) + ": " + ERROR_NUMBER_OF_ARGUMENTS.replace("$NAME$", currentLineObject.opcode).replace("$EXPECTED_NUMBER$", "2").replace("$NUMBER$", currentLineObject.args.length);
+                                return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.numberOfArguments(currentLineObject.opcode, "2", currentLineObject.args.length);
                             }
 
                             // Checking the type of the arguments.
                             if (!isRegistryAddress(currentLineObject.args[0])) {
-                                return "Error in line " + (i + 1) + ": " + ERROR_ADDRESS_EXPECTED.replace("$TYPE$", "registry").replace("$POS$", "first").replace("$ADDRESS$", currentLineObject.args[0]);
+                                return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.addressExpected("registry", "first", currentLineObject.args[0]);
                             }
                         } else {
                             // Checking number of arguments.
                             if (currentLineObject.args.length != 1) {
-                                return "Error in line " + (i + 1) + ": " + ERROR_NUMBER_OF_ARGUMENTS.replace("$NAME$", currentLineObject.opcode).replace("$EXPECTED_NUMBER$", "1").replace("$NUMBER$", currentLineObject.args.length);
+                                return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.numberOfArguments(currentLineObject.opcode, "1", currentLineObject.args.length);
                             }
 
                             if (currentLineObject.opcode === "JR" || currentLineObject.opcode === "JALR") {
                                 // Checking the type of the arguments.
                                 if (!isRegistryAddress(currentLineObject.args[0])) {
-                                    return "Error in line " + (i + 1) + ": " + ERROR_ADDRESS_EXPECTED.replace("$TYPE$", "registry").replace("$POS$", "first").replace("$ADDRESS$", currentLineObject.args[0]);
+                                    return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.addressExpected("registry", "first", currentLineObject.args[0]);
                                 }
                             }
                         }
                     } else if (currentLineObject.opcode === "SW" || currentLineObject.opcode === "LW") {
                         // Checking number of arguments.
                         if (currentLineObject.args.length != 2) {
-                            return "Error in line " + (i + 1) + ": " + ERROR_NUMBER_OF_ARGUMENTS.replace("$NAME$", currentLineObject.opcode).replace("$EXPECTED_NUMBER$", "2").replace("$NUMBER$", currentLineObject.args.length);
+                            return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.numberOfArguments(currentLineObject.opcode, "2", currentLineObject.args.length);
                         }
 
                         if (currentLineObject.opcode === "SW") {
                             // Checking the type of the arguments.
                             if (!isIndirectMemoryAddress(currentLineObject.args[0])) {
-                                return "Error in line " + (i + 1) + ": " + ERROR_ADDRESS_EXPECTED.replace("$TYPE$", "memory").replace("$POS$", "first").replace("$ADDRESS$", currentLineObject.args[0]);
+                                return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.addressExpected("memory", "first", currentLineObject.args[0]);
                             }
                             if (!isRegistryAddress(currentLineObject.args[1])) {
-                                return "Error in line " + (i + 1) + ": " + ERROR_ADDRESS_EXPECTED.replace("$TYPE$", "registry").replace("$POS$", "second").replace("$ADDRESS$", currentLineObject.args[1]);
+                                return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.addressExpected("registry", "second", currentLineObject.args[1]);
                             }
                         } else {
                             // Checking the type of the arguments.
                             if (!isRegistryAddress(currentLineObject.args[0])) {
-                                return "Error in line " + (i + 1) + ": " + ERROR_ADDRESS_EXPECTED.replace("$TYPE$", "registry").replace("$POS$", "first").replace("$ADDRESS$", currentLineObject.args[0]);
+                                return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.addressExpected("registry", "first", currentLineObject.args[0]);
                             }
                             if (!isIndirectMemoryAddress(currentLineObject.args[1])) {
-                                return "Error in line " + (i + 1) + ": " + ERROR_ADDRESS_EXPECTED.replace("$TYPE$", "memory").replace("$POS$", "second").replace("$ADDRESS$", currentLineObject.args[1]);
+                                return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.addressExpected("memory", "second", currentLineObject.args[1]);
                             }
 
                             // Checking if it tries to override R0.
                             if (currentLineObject.args[0] === "R0") {
-                                return "Error in line " + (i + 1) + ": " + ERROR_READ_ONLY;
+                                return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.readOnly();
                             }
                         }
                     } else if (currentLineObject.opcode === "HALT") {
                         // Checking number of arguments.
                         if (currentLineObject.args.length != 0) {
-                            return "Error in line " + (i + 1) + ": " + ERROR_NUMBER_OF_ARGUMENTS.replace("$NAME$", "HALT").replace("$EXPECTED_NUMBER$", "0").replace("$NUMBER$", currentLineObject.args.length);
+                            return "Error in line " + (i + 1) + ": " + getDlxInterpreterError.numberOfArguments("HALT", "0", currentLineObject.args.length);
                         }
                     }
                 }
