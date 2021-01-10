@@ -973,7 +973,7 @@
 
                             // Checking the type of the arguments.
                             if (!isRegistryAddress(currentLineObject.args[0])) {
-                                return "Error in line " + (i + 1) + ": " + ERROR_ADDRESS_EXPECTED.replace("$TYPE$", "registry").replace("POS", "first").replace("$ADDRESS$", currentLineObject.args[0]);
+                                return "Error in line " + (i + 1) + ": " + ERROR_ADDRESS_EXPECTED.replace("$TYPE$", "registry").replace("$POS$", "first").replace("$ADDRESS$", currentLineObject.args[0]);
                             }
                         } else {
                             // Checking number of arguments.
@@ -984,7 +984,7 @@
                             if (currentLineObject.opcode === "JR" || currentLineObject.opcode === "JALR") {
                                 // Checking the type of the arguments.
                                 if (!isRegistryAddress(currentLineObject.args[0])) {
-                                    return "Error in line " + (i + 1) + ": " + ERROR_ADDRESS_EXPECTED.replace("$TYPE$", "registry").replace("POS", "first").replace("$ADDRESS$", currentLineObject.args[0]);
+                                    return "Error in line " + (i + 1) + ": " + ERROR_ADDRESS_EXPECTED.replace("$TYPE$", "registry").replace("$POS$", "first").replace("$ADDRESS$", currentLineObject.args[0]);
                                 }
                             }
                         }
@@ -997,18 +997,18 @@
                         if (currentLineObject.opcode === "SW") {
                             // Checking the type of the arguments.
                             if (!isIndirectMemoryAddress(currentLineObject.args[0])) {
-                                return "Error in line " + (i + 1) + ": " + ERROR_ADDRESS_EXPECTED.replace("$TYPE$", "memory").replace("POS", "first").replace("$ADDRESS$", currentLineObject.args[0]);
+                                return "Error in line " + (i + 1) + ": " + ERROR_ADDRESS_EXPECTED.replace("$TYPE$", "memory").replace("$POS$", "first").replace("$ADDRESS$", currentLineObject.args[0]);
                             }
                             if (!isRegistryAddress(currentLineObject.args[1])) {
-                                return "Error in line " + (i + 1) + ": " + ERROR_ADDRESS_EXPECTED.replace("$TYPE$", "registry").replace("POS", "second").replace("$ADDRESS$", currentLineObject.args[1]);
+                                return "Error in line " + (i + 1) + ": " + ERROR_ADDRESS_EXPECTED.replace("$TYPE$", "registry").replace("$POS$", "second").replace("$ADDRESS$", currentLineObject.args[1]);
                             }
                         } else {
                             // Checking the type of the arguments.
                             if (!isRegistryAddress(currentLineObject.args[0])) {
-                                return "Error in line " + (i + 1) + ": " + ERROR_ADDRESS_EXPECTED.replace("$TYPE$", "registry").replace("POS", "first").replace("$ADDRESS$", currentLineObject.args[0]);
+                                return "Error in line " + (i + 1) + ": " + ERROR_ADDRESS_EXPECTED.replace("$TYPE$", "registry").replace("$POS$", "first").replace("$ADDRESS$", currentLineObject.args[0]);
                             }
                             if (!isIndirectMemoryAddress(currentLineObject.args[1])) {
-                                return "Error in line " + (i + 1) + ": " + ERROR_ADDRESS_EXPECTED.replace("$TYPE$", "memory").replace("POS", "second").replace("$ADDRESS$", currentLineObject.args[1]);
+                                return "Error in line " + (i + 1) + ": " + ERROR_ADDRESS_EXPECTED.replace("$TYPE$", "memory").replace("$POS$", "second").replace("$ADDRESS$", currentLineObject.args[1]);
                             }
 
                             // Checking if it tries to override R0.
