@@ -1,3 +1,4 @@
+'use strict';
 // I do not know what it does but it is needed.
 (function(mod) {
     if (typeof exports == "object" && typeof module == "object")

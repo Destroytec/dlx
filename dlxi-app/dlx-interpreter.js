@@ -1,3 +1,4 @@
+'use strict';
 (function (global) {
 
     let DLX_Interpreter = (function () {
@@ -1202,7 +1203,7 @@
         }
 
         /** The methods that should be accessable from outside. */
-        methods = {
+        let methods = {
             OK: OK,
 
             HALT: HALT,

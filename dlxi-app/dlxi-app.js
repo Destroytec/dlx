@@ -1,3 +1,4 @@
+'use strict';
 (function(global) {
 
     let Interpreter = (function() {
@@ -770,7 +771,7 @@
         }
 
         /** The methods that should be accessable from outside. */
-        methods = {
+        let methods = {
             start: start,
 
             execute: execute,
