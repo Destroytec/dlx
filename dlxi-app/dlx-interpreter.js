@@ -551,6 +551,7 @@
 
             // Halt
             HALT: function () {
+                line--;
                 return DlxStatus.HALT;
             }
         }
