@@ -216,65 +216,15 @@
             // DATA TRANSFERS
 
             // Load word
-            LW: function (args) {
-                let address,
-                    indirectValue,
-                    directValue;
-
-                directValue = parseInt(/^-?[0-9]+/.exec(args[1])[0]);
-                indirectValue = parseInt(registry[/R[0-9]+/.exec(args[1])[0]]);
-
-                // Checking if the indirect value is a number.
-                if (isNaN(indirectValue)) {
-                    return DlxError.noValue("Registry", /R[0-9]+/.exec(args[1])[0]);
-                }
-
-                address = directValue + indirectValue;
-
-                // Checking if it is a valid direct address.
-                if (!isDirectMemoryAddress(address)) {
-                    return DlxError.invalidDirectAddress(address, args[1]);
-                }
-
-                // Checking if entries have values.
-                if (isNaN(memory[address])) {
-                    return DlxError.noValue("Memory", address);
-                }
-
-                // Actual code.
-                registry[args[0]] = memory[address];
+            LW: function (registryAddress, memoryAddress) {
+                registry[registryAddress] = memory[memoryAddress];
 
                 return DlxStatus.OK;
             },
 
             // Save word
-            SW: function (args) {
-                let address,
-                    indirectValue,
-                    directValue;
-
-                directValue = parseInt(/^-?[0-9]+/.exec(args[0])[0]);
-                indirectValue = parseInt(registry[/R[0-9]+/.exec(args[0])[0]]);
-
-                // Checking if the indirect value is a number.
-                if (isNaN(indirectValue)) {
-                    return DlxError.noValue("Registry", /R[0-9]+/.exec(args[0])[0]);
-                }
-
-                address = directValue + indirectValue;
-
-                // Checking if it is a valid direct address.
-                if (!isDirectMemoryAddress(address)) {
-                    return DlxError.invalidDirectAddress(address, args[0]);
-                }
-
-                // Checking if entries have values.
-                if (isNaN(registry[args[1]])) {
-                    return DlxError.noValue("Registry", args[1]);
-                }
-
-                // Actual code.
-                memory[address] = registry[args[1]];
+            SW: function (memoryAddress, registryAddress) {
+                memory[memoryAddress] = registry[registryAddress];
 
                 return DlxStatus.OK;
             },
@@ -283,46 +233,22 @@
             // ARITHMETIC
 
             // Add
-            ADD: function (args) {
-                // Check for valid input.
-                let status = checkRCommand("ADD", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                registry[args[0]] = registry[args[1]] + registry[args[2]];
+            ADD: function (destinationRegistryAddress, registryAddress, otherRegistryAddress) {
+                registry[destinationRegistryAddress] = registry[registryAddress] + registry[otherRegistryAddress];
 
                 return DlxStatus.OK;
             },
 
             // Sub
-            SUB: function (args) {
-                // Check for valid input.
-                let status = checkRCommand("SUB", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                registry[args[0]] = registry[args[1]] - registry[args[2]];
+            SUB: function (destinationRegistryAddress, registryAddress, otherRegistryAddress) {
+                registry[destinationRegistryAddress] = registry[registryAddress] - registry[otherRegistryAddress];
 
                 return DlxStatus.OK;
             },
 
             // Multiplikation
-            MULT: function (args) {
-                // Check for valid input.
-                let status = checkRCommand("MULT", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                registry[args[0]] = registry[args[1]] * registry[args[2]];
+            MULT: function (destinationRegistryAddress, registryAddress, otherRegistryAddress) {
+                registry[destinationRegistryAddress] = registry[registryAddress] * registry[otherRegistryAddress];
 
                 return DlxStatus.OK;
             },
@@ -331,31 +257,15 @@
             // ARITHMETIC IMMEDIATE
 
             // Add immediate
-            ADDI: function (args) {
-                // Check for valid input.
-                let status = checkICommand("ADDI", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                registry[args[0]] = registry[args[1]] + parseInt(args[2].replace("#", ""));
+            ADDI: function (destinationRegistryAddress, registryAddress, immediateValue) {
+                registry[destinationRegistryAddress] = registry[registryAddress] + immediateValue;
 
                 return DlxStatus.OK;
             },
 
             // Sub immediate
-            SUBI: function (args) {
-                // Check for valid input.
-                let status = checkICommand("SUBI", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                registry[args[0]] = registry[args[1]] - parseInt(args[2].replace("#", ""));
+            SUBI: function (destinationRegistryAddress, registryAddress, immediateValue) {
+                registry[destinationRegistryAddress] = registry[registryAddress] - immediateValue;
 
                 return DlxStatus.OK;
             },
@@ -364,122 +274,50 @@
             // LOGIC
 
             // AND
-            AND: function (args) {
-                // Check for valid input.
-                let status = checkRCommand("AND", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                registry[args[0]] = registry[args[1]] & registry[args[2]];
+            AND: function (destinationRegistryAddress, registryAddress, otherRegistryAddress) {
+                registry[destinationRegistryAddress] = registry[registryAddress] & registry[otherRegistryAddress];
 
                 return DlxStatus.OK;
             },
 
             // OR
-            OR: function (args) {
-                // Check for valid input.
-                let status = checkRCommand("OR", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                registry[args[0]] = registry[args[1]] | registry[args[2]];
+            OR: function (destinationRegistryAddress, registryAddress, otherRegistryAddress) {
+                registry[destinationRegistryAddress] = registry[registryAddress] | registry[otherRegistryAddress];
 
                 return DlxStatus.OK;
             },
 
             // XOR
-            XOR: function (args) {
-                // Check for valid input.
-                let status = checkRCommand("XOR", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                registry[args[0]] = registry[args[1]] ^ registry[args[2]];
+            XOR: function (destinationRegistryAddress, registryAddress, otherRegistryAddress) {
+                registry[destinationRegistryAddress] = registry[registryAddress] ^ registry[otherRegistryAddress];
 
                 return DlxStatus.OK;
             },
 
             // Set equal
-            SEQ: function (args) {
-                // Check for valid input.
-                let status = checkRCommand("SEQ", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                if (registry[args[1]] == registry[args[2]]) {
-                    registry[args[0]] = 1;
-                } else {
-                    registry[args[0]] = 0;
-                }
+            SEQ: function (destinationRegistryAddress, registryAddress, otherRegistryAddress) {
+                registry[destinationRegistryAddress] = registry[registryAddress] == registry[otherRegistryAddress] ? 1 : 0;
 
                 return DlxStatus.OK;
             },
 
             // Set less than or equal
-            SLE: function (args) {
-                // Check for valid input.
-                let status = checkRCommand("SLE", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                if (registry[args[1]] <= registry[args[2]]) {
-                    registry[args[0]] = 1;
-                } else {
-                    registry[args[0]] = 0;
-                }
+            SLE: function (destinationRegistryAddress, registryAddress, otherRegistryAddress) {
+                registry[destinationRegistryAddress] = registry[registryAddress] <= registry[otherRegistryAddress] ? 1 : 0;
 
                 return DlxStatus.OK;
             },
 
             // Set less than
-            SLT: function (args) {
-                // Check for valid input.
-                let status = checkRCommand("SLT", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                if (registry[args[1]] < registry[args[2]]) {
-                    registry[args[0]] = 1;
-                } else {
-                    registry[args[0]] = 0;
-                }
+            SLT: function (destinationRegistryAddress, registryAddress, otherRegistryAddress) {
+                registry[destinationRegistryAddress] = registry[registryAddress] < registry[otherRegistryAddress] ? 1 : 0;
 
                 return DlxStatus.OK;
             },
 
             // Set not equal
-            SNE: function (args) {
-                // Check for valid input.
-                let status = checkRCommand("SNE", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                if (registry[args[1]] != registry[args[2]]) {
-                    registry[args[0]] = 1;
-                } else {
-                    registry[args[0]] = 0;
-                }
+            SNE: function (destinationRegistryAddress, registryAddress, otherRegistryAddress) {
+                registry[destinationRegistryAddress] = registry[registryAddress] != registry[otherRegistryAddress] ? 1 : 0;
 
                 return DlxStatus.OK;
             },
@@ -488,122 +326,50 @@
             // LOGIC IMMEDIATE
 
             // AND immediate
-            ANDI: function (args) {
-                // Check for valid input.
-                let status = checkICommand("ANDI", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                registry[args[0]] = registry[args[1]] & parseInt(args[2].replace("#", ""));
+            ANDI: function (destinationRegistryAddress, registryAddress, immediateValue) {
+                registry[destinationRegistryAddress] = registry[registryAddress] & immediateValue;
 
                 return DlxStatus.OK;
             },
 
             // OR immediate
-            ORI: function (args) {
-                // Check for valid input.
-                let status = checkICommand("ORI", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                registry[args[0]] = registry[args[1]] | parseInt(args[2].replace("#", ""));
+            ORI: function (destinationRegistryAddress, registryAddress, immediateValue) {
+                registry[destinationRegistryAddress] = registry[registryAddress] | immediateValue;
 
                 return DlxStatus.OK;
             },
 
             // XOR immediate
-            XORI: function (args) {
-                // Check for valid input.
-                let status = checkICommand("XORI", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                registry[args[0]] = registry[args[1]] ^ parseInt(args[2].replace("#", ""));
+            XORI: function (destinationRegistryAddress, registryAddress, immediateValue) {
+                registry[destinationRegistryAddress] = registry[registryAddress] ^ immediateValue;
 
                 return DlxStatus.OK;
             },
 
             // Set equal immediate
-            SEQI: function (args) {
-                // Check for valid input.
-                let status = checkICommand("SEQI", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                if (registry[args[1]] == parseInt(args[2].replace("#", ""))) {
-                    registry[args[0]] = 1;
-                } else {
-                    registry[args[0]] = 0;
-                }
+            SEQI: function (destinationRegistryAddress, registryAddress, immediateValue) {
+                registry[destinationRegistryAddress] = registry[registryAddress] == immediateValue ? 1 : 0;
 
                 return DlxStatus.OK;
             },
 
             // Set less than or equal immediate
-            SLEI: function (args) {
-                // Check for valid input.
-                let status = checkICommand("SLEI", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                if (registry[args[1]] <= parseInt(args[2].replace("#", ""))) {
-                    registry[args[0]] = 1;
-                } else {
-                    registry[args[0]] = 0;
-                }
+            SLEI: function (destinationRegistryAddress, registryAddress, immediateValue) {
+                registry[destinationRegistryAddress] = registry[registryAddress] <= immediateValue ? 1 : 0;
 
                 return DlxStatus.OK;
             },
 
             // Set less than immediate
-            SLTI: function (args) {
-                // Check for valid input.
-                let status = checkICommand("SLTI", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                if (registry[args[1]] < parseInt(args[2].replace("#", ""))) {
-                    registry[args[0]] = 1;
-                } else {
-                    registry[args[0]] = 0;
-                }
+            SLTI: function (destinationRegistryAddress, registryAddress, immediateValue) {
+                registry[destinationRegistryAddress] = registry[registryAddress] < immediateValue ? 1 : 0;
 
                 return DlxStatus.OK;
             },
 
             // Set not equal immediate
-            SNEI: function (args) {
-                // Check for valid input.
-                let status = checkICommand("SNEI", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                if (registry[args[1]] != parseInt(args[2].replace("#", ""))) {
-                    registry[args[0]] = 1;
-                } else {
-                    registry[args[0]] = 0;
-                }
+            SNEI: function (destinationRegistryAddress, registryAddress, immediateValue) {
+                registry[destinationRegistryAddress] = registry[registryAddress] != immediateValue ? 1 : 0;
 
                 return DlxStatus.OK;
             },
@@ -612,46 +378,22 @@
             // SHIFT
 
             // Shift left logical
-            SLL: function (args) {
-                // Check for valid input.
-                let status = checkRCommand("SLL", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                registry[args[0]] = registry[args[1]] << registry[args[2]];
+            SLL: function (destinationRegistryAddress, registryAddress, otherRegistryAddress) {
+                registry[destinationRegistryAddress] = registry[registryAddress] << registry[otherRegistryAddress];
 
                 return DlxStatus.OK;
             },
 
             // Shift right arithmetic
-            SRA: function (args) {
-                // Check for valid input.
-                let status = checkRCommand("SRA", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                registry[args[0]] = registry[args[1]] >> registry[args[2]];
+            SRA: function (destinationRegistryAddress, registryAddress, otherRegistryAddress) {
+                registry[destinationRegistryAddress] = registry[registryAddress] >> registry[otherRegistryAddress];
 
                 return DlxStatus.OK;
             },
 
             // Shift right logical
-            SRL: function (args) {
-                // Check for valid input.
-                let status = checkRCommand("SRL", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                registry[args[0]] = registry[args[1]] >>> registry[args[2]];
+            SRL: function (destinationRegistryAddress, registryAddress, otherRegistryAddress) {
+                registry[destinationRegistryAddress] = registry[registryAddress] >>> registry[otherRegistryAddress];
 
                 return DlxStatus.OK;
             },
@@ -660,46 +402,22 @@
             // SHIFT IMMEDIATE
 
             // Shift left logical immediate
-            SLLI: function (args) {
-                // Check for valid input.
-                let status = checkICommand("SLLI", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                registry[args[0]] = registry[args[1]] << parseInt(args[2].replace("#", ""));
+            SLLI: function (destinationRegistryAddress, registryAddress, immediateValue) {
+                registry[destinationRegistryAddress] = registry[registryAddress] << immediateValue;
 
                 return DlxStatus.OK;
             },
 
             // Shift right arithmetic immediate
-            SRAI: function (args) {
-                // Check for valid input.
-                let status = checkICommand("SRAI", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                registry[args[0]] = registry[args[1]] >> parseInt(args[2].replace("#", ""));
+            SRAI: function (destinationRegistryAddress, registryAddress, immediateValue) {
+                registry[destinationRegistryAddress] = registry[registryAddress] >> immediateValue;
 
                 return DlxStatus.OK;
             },
 
             // Shift right logical immediate
-            SRLI: function (args) {
-                // Check for valid input.
-                let status = checkICommand("SRLI", args);
-
-                if (status !== DlxStatus.OK) {
-                    return status;
-                }
-
-                // Actual code.
-                registry[args[0]] = registry[args[1]] >>> parseInt(args[2].replace("#", ""));
+            SRLI: function (destinationRegistryAddress, registryAddress, immediateValue) {
+                registry[destinationRegistryAddress] = registry[registryAddress] >>> immediateValue;
 
                 return DlxStatus.OK;
             },
@@ -832,13 +550,90 @@
             },
 
             // Halt
-            HALT: function (args) {
-                // Actual code.
-                // line = 0;
-
+            HALT: function () {
                 return DlxStatus.HALT;
             }
         }
+
+        let runInstruction = function (opcode, args) {
+            if (!DlxInstruction.isInstruction(opcode)) {
+                return DlxStatus.HALT;
+            }
+
+            if (DlxInstruction.isLoadInstruction(opcode)) {
+                let address,
+                    indirectValue,
+                    directValue;
+
+                directValue = parseInt(/^-?[0-9]+/.exec(args[1])[0]);
+                indirectValue = parseInt(registry[/R[0-9]+/.exec(args[1])[0]]);
+
+                // Checking if the indirect value is a number.
+                if (isNaN(indirectValue)) {
+                    return DlxError.noValue("Registry", /R[0-9]+/.exec(args[1])[0]);
+                }
+
+                address = directValue + indirectValue;
+
+                // Checking if it is a valid direct address.
+                if (!isDirectMemoryAddress(address)) {
+                    return DlxError.invalidDirectAddress(address, args[1]);
+                }
+
+                // Checking if entries have values.
+                if (isNaN(memory[address])) {
+                    return DlxError.noValue("Memory", address);
+                }
+
+                return commands[opcode](args[0], address)
+            } else if (DlxInstruction.isSaveInstruction(opcode)) {
+                let address,
+                    indirectValue,
+                    directValue;
+
+                directValue = parseInt(/^-?[0-9]+/.exec(args[0])[0]);
+                indirectValue = parseInt(registry[/R[0-9]+/.exec(args[0])[0]]);
+
+                // Checking if the indirect value is a number.
+                if (isNaN(indirectValue)) {
+                    return DlxError.noValue("Registry", /R[0-9]+/.exec(args[0])[0]);
+                }
+
+                address = directValue + indirectValue;
+
+                // Checking if it is a valid direct address.
+                if (!isDirectMemoryAddress(address)) {
+                    return DlxError.invalidDirectAddress(address, args[0]);
+                }
+
+                // Checking if entries have values.
+                if (isNaN(registry[args[1]])) {
+                    return DlxError.noValue("Registry", args[1]);
+                }
+
+                return commands[opcode](address, args[1]);
+            } else if (DlxInstruction.isRegistryInstruction(opcode)) {
+                // Check for valid input.
+                let status = checkRCommand(opcode, args);
+
+                if (status !== DlxStatus.OK) {
+                    return status;
+                };
+
+                return commands[opcode](args[0], args[1], args[2]);
+            } else if (DlxInstruction.isImmediateInstruction(opcode)) {
+                // Check for valid input.
+                let status = checkICommand(opcode, args);
+
+                if (status !== DlxStatus.OK) {
+                    return status;
+                };
+
+                return commands[opcode](args[0], args[1], parseInt(args[2].replace("#", "")));
+            } else {
+                return commands[opcode](args);
+            }
+        };
 
         /** The options of the interpreter. */
         let options;
@@ -911,7 +706,7 @@
                 return DlxStatus.OK;
             }
 
-            return commands[command.opcode](command.args);
+            return runInstruction(command.opcode, command.args);
         }
 
         /** Executes the program. */
