@@ -3,13 +3,10 @@
 
     let DlxInterpreter = (function () {
 
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // General
-
-        /** Contains methods to get error messages. */
-        let getDlxInterpreterError = {
+        // TODO: Move the error thing to the app itself. The interpreter should only return a numeric value for the error it encounters.
+        let DlxInterpreterError = (function () {
             /** Contains error messages for the DLX interpreter with placeholder. */
-            ERROR_MSG: {
+            let ERROR_MSG = {
                 ADDRESS_EXPECTED: "A $TYPE$ address was as $POS$ argument expected, but got \"$ADDRESS$\".",
                 NUMBER_OF_ARGUMENTS: "$NAME$ needs $EXPECTED_NUMBER$ arguments, but got $NUMBER$.",
                 NO_VALUE: "$TYPE$ entry \"$ADDRESS$\" does not contain a number.",
@@ -21,63 +18,82 @@
                 IMMEDIATE_VALUE_EXPECTED: "A immediate value was as $POS$ argument expected, but got \"$VALUE$\".",
                 TOO_MANY_JUMPS: "The interpreter jumped from line $FROM_LINE$ to line $TO_LINE$ too many times. You are probably in a loop. If not, raise the maximum jumps in the options.",
                 TOO_MANY_STEPS: "The interpreter interpreted too many lines. You are probably in a loop. If not, raise the maximum steps in the options."
-            },
+            }
 
             /** Returns an error message for an unexpected address. */
-            addressExpected: function (type, pos, address) {
-                return this.ERROR_MSG.ADDRESS_EXPECTED.replace("$TYPE$", type).replace("$POS$", pos).replace("$ADDRESS$", address);
-            },
+            let addressExpected = function (type, pos, address) {
+                return ERROR_MSG.ADDRESS_EXPECTED.replace("$TYPE$", type).replace("$POS$", pos).replace("$ADDRESS$", address);
+            }
 
             /** Returns an error message for a wrong number of arguments. */
-            numberOfArguments: function (name, expectedNumber, receivedNumber) {
-                return this.ERROR_MSG.NUMBER_OF_ARGUMENTS.replace("$NAME$", name).replace("$EXPECTED_NUMBER$", expectedNumber).replace("$NUMBER$", receivedNumber);
-            },
+            let numberOfArguments = function (name, expectedNumber, receivedNumber) {
+                return ERROR_MSG.NUMBER_OF_ARGUMENTS.replace("$NAME$", name).replace("$EXPECTED_NUMBER$", expectedNumber).replace("$NUMBER$", receivedNumber);
+            }
 
             /** Returns an error message for entries that contains no value. */
-            noValue: function (type, address) {
-                return this.ERROR_MSG.NO_VALUE.replace("$TYPE$", type).replace("$ADDRESS$", address);
-            },
+            let noValue = function (type, address) {
+                return ERROR_MSG.NO_VALUE.replace("$TYPE$", type).replace("$ADDRESS$", address);
+            }
 
             /** Returns an error message for trying writing R0. */
-            readOnly: function () {
-                return this.ERROR_MSG.READ_ONLY;
-            },
+            let readOnly = function () {
+                return ERROR_MSG.READ_ONLY;
+            }
 
             /** Returns an error message for not found labels. */
-            labelNotFound: function (label) {
-                return this.ERROR_MSG.LABEL_NOT_FOUND.replace("$LABEL$", label);
-            },
+            let labelNotFound = function (label) {
+                return ERROR_MSG.LABEL_NOT_FOUND.replace("$LABEL$", label);
+            }
 
             /** Returns an error message for not found opcodes. */
-            opcodeNotFound: function (opcode) {
-                return this.ERROR_MSG.OPCODE_NOT_FOUND.replace("$OPCODE$", opcode);
-            },
+            let opcodeNotFound = function (opcode) {
+                return ERROR_MSG.OPCODE_NOT_FOUND.replace("$OPCODE$", opcode);
+            }
 
             /** Returns an error message for invalid direct address. */
-            invalidDirectAddress: function (directAddress, address) {
-                return this.ERROR_MSG.INVALID_DIRECT_ADDRESS.replace("$DIRECT_ADDRESS$", directAddress).replace("$ADDRESS$", address);
-            },
+            let invalidDirectAddress = function (directAddress, address) {
+                return ERROR_MSG.INVALID_DIRECT_ADDRESS.replace("$DIRECT_ADDRESS$", directAddress).replace("$ADDRESS$", address);
+            }
 
             /** Returns an error message for a not existing HALT. */
-            haltNotFound: function () {
-                return this.ERROR_MSG.HALT_NOT_FOUND;
-            },
+            let haltNotFound = function () {
+                return ERROR_MSG.HALT_NOT_FOUND;
+            }
 
             /** Returns an error message for an unexpected immediate value. */
-            immediateValueExpected: function (pos, value) {
-                return this.ERROR_MSG.IMMEDIATE_VALUE_EXPECTED.replace("$POS$", pos).replace("$VALUE$", value);
-            },
+            let immediateValueExpected = function (pos, value) {
+                return ERROR_MSG.IMMEDIATE_VALUE_EXPECTED.replace("$POS$", pos).replace("$VALUE$", value);
+            }
 
             /** Returns an error message for too many jumps. */
-            tooManyJumps: function (fromLine, toLine) {
-                return this.ERROR_MSG.TOO_MANY_JUMPS.replace("$FROM_LINE$", fromLine).replace("$TO_LINE$", toLine);
-            },
+            let tooManyJumps = function (fromLine, toLine) {
+                return ERROR_MSG.TOO_MANY_JUMPS.replace("$FROM_LINE$", fromLine).replace("$TO_LINE$", toLine);
+            }
 
             /** Returns an error message for too many steps. */
-            tooManySteps: function () {
-                return this.ERROR_MSG.TOO_MANY_STEPS;
+            let tooManySteps = function () {
+                return ERROR_MSG.TOO_MANY_STEPS;
             }
-        };
+
+            let methods = {
+                addressExpected: addressExpected,
+                numberOfArguments: numberOfArguments,
+                noValue: noValue,
+                readOnly: readOnly,
+                labelNotFound: labelNotFound,
+                opcodeNotFound: opcodeNotFound,
+                invalidDirectAddress: invalidDirectAddress,
+                haltNotFound: haltNotFound,
+                immediateValueExpected: immediateValueExpected,
+                tooManyJumps: tooManyJumps,
+                tooManySteps: tooManySteps
+            }
+
+            return methods;
+        })();
+
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // General
 
         /** Status code if everything is fine. */
         let OK = 1;
@@ -102,19 +118,19 @@
 
                 // Checking if the indirect value is a number.
                 if (isNaN(indirectValue)) {
-                    return getDlxInterpreterError.noValue("Registry", /R[0-9]+/.exec(args[1])[0]);
+                    return DlxInterpreterError.noValue("Registry", /R[0-9]+/.exec(args[1])[0]);
                 }
 
                 address = directValue + indirectValue;
 
                 // Checking if it is a valid direct address.
                 if (!isDirectMemoryAddress(address)) {
-                    return getDlxInterpreterError.invalidDirectAddress(address, args[1]);
+                    return DlxInterpreterError.invalidDirectAddress(address, args[1]);
                 }
 
                 // Checking if entries have values.
                 if (isNaN(memory[address])) {
-                    return getDlxInterpreterError.noValue("Memory", address);
+                    return DlxInterpreterError.noValue("Memory", address);
                 }
 
                 // Actual code.
@@ -134,19 +150,19 @@
 
                 // Checking if the indirect value is a number.
                 if (isNaN(indirectValue)) {
-                    return getDlxInterpreterError.noValue("Registry", /R[0-9]+/.exec(args[0])[0]);
+                    return DlxInterpreterError.noValue("Registry", /R[0-9]+/.exec(args[0])[0]);
                 }
 
                 address = directValue + indirectValue;
 
                 // Checking if it is a valid direct address.
                 if (!isDirectMemoryAddress(address)) {
-                    return getDlxInterpreterError.invalidDirectAddress(address, args[0]);
+                    return DlxInterpreterError.invalidDirectAddress(address, args[0]);
                 }
 
                 // Checking if entries have values.
                 if (isNaN(registry[args[1]])) {
-                    return getDlxInterpreterError.noValue("Registry", args[1]);
+                    return DlxInterpreterError.noValue("Registry", args[1]);
                 }
 
                 // Actual code.
@@ -587,19 +603,19 @@
             BNEZ: function (args) {
                 // Checking the type of the arguments.
                 if (labels[args[1]] === undefined) {
-                    return getDlxInterpreterError.labelNotFound(args[1]);
+                    return DlxInterpreterError.labelNotFound(args[1]);
                 }
 
                 // Checking if entries have values.
                 if (isNaN(registry[args[0]])) {
-                    return getDlxInterpreterError.noValue("Registry", args[0]);
+                    return DlxInterpreterError.noValue("Registry", args[0]);
                 }
 
                 // Actual code.
                 if (registry[args[0]] !== 0) {
                     // Counting jump and checking if it was too much.
                     if (++jumps[line][labels[args[1]]] > options.maxJumps) {
-                        return getDlxInterpreterError.tooManyJumps((line), (labels[args[1]]));
+                        return DlxInterpreterError.tooManyJumps((line), (labels[args[1]]));
                     }
 
                     line = labels[args[1]];
@@ -612,19 +628,19 @@
             BEQZ: function (args) {
                 // Checking the type of the arguments.
                 if (labels[args[1]] === undefined) {
-                    return getDlxInterpreterError.labelNotFound(args[1]);
+                    return DlxInterpreterError.labelNotFound(args[1]);
                 }
 
                 // Checking if entries have values.
                 if (isNaN(registry[args[0]])) {
-                    return getDlxInterpreterError.noValue("Registry", args[0]);
+                    return DlxInterpreterError.noValue("Registry", args[0]);
                 }
 
                 // Actual code.
                 if (registry[args[0]] === 0) {
                     // Counting jump and checking if it was too much.
                     if (++jumps[line][labels[args[1]]] > options.maxJumps) {
-                        return getDlxInterpreterError.tooManyJumps((line), (labels[args[1]]));
+                        return DlxInterpreterError.tooManyJumps((line), (labels[args[1]]));
                     }
 
                     line = labels[args[1]];
@@ -637,12 +653,12 @@
             J: function (args) {
                 // Checking the type of the arguments.
                 if (labels[args[0]] === undefined) {
-                    return getDlxInterpreterError.labelNotFound(args[0]);
+                    return DlxInterpreterError.labelNotFound(args[0]);
                 }
 
                 // Counting jump and checking if it was too much.
                 if (++jumps[line][labels[args[0]]] > options.maxJumps) {
-                    return getDlxInterpreterError.tooManyJumps((line), labels[args[0]]);
+                    return DlxInterpreterError.tooManyJumps((line), labels[args[0]]);
                 }
 
                 // Actual code.
@@ -655,12 +671,12 @@
             JR: function (args) {
                 // Checking if entries have values.
                 if (isNaN(registry[args[0]])) {
-                    return getDlxInterpreterError.noValue("Registry", args[0]);
+                    return DlxInterpreterError.noValue("Registry", args[0]);
                 }
 
                 // Counting jump and checking if it was too much.
                 if (++jumps[line][registry[args[0]]] > options.maxJumps) {
-                    return getDlxInterpreterError.tooManyJumps((line), (registry[args[0]]));
+                    return DlxInterpreterError.tooManyJumps((line), (registry[args[0]]));
                 }
 
                 // Actual code.
@@ -673,12 +689,12 @@
             JAL: function (args) {
                 // Checking the type of the arguments.
                 if (labels[args[0]] === undefined) {
-                    return getDlxInterpreterError.labelNotFound(args[0]);
+                    return DlxInterpreterError.labelNotFound(args[0]);
                 }
 
                 // Counting jump and checking if it was too much.
                 if (++jumps[line][labels[args[0]]] > options.maxJumps) {
-                    return getDlxInterpreterError.tooManyJumps((line), (labels[args[0]]));
+                    return DlxInterpreterError.tooManyJumps((line), (labels[args[0]]));
                 }
 
                 // Actual code.
@@ -692,12 +708,12 @@
             JALR: function (args) {
                 // Checking if entries have values.
                 if (isNaN(registry[args[0]])) {
-                    return getDlxInterpreterError.noValue("Registry", args[0]);
+                    return DlxInterpreterError.noValue("Registry", args[0]);
                 }
 
                 // Counting jump and checking if it was too much.
                 if (++jumps[line][registry[args[0]]] > options.maxJumps) {
-                    return getDlxInterpreterError.tooManyJumps((line), (registry[args[0]]));
+                    return DlxInterpreterError.tooManyJumps((line), (registry[args[0]]));
                 }
 
                 // Actual code.
@@ -797,10 +813,10 @@
         let checkRCommand = function (name, args) {
             // Checking if entries have values.
             if (isNaN(registry[args[1]])) {
-                return getDlxInterpreterError.noValue("Registry", args[1]);
+                return DlxInterpreterError.noValue("Registry", args[1]);
             }
             if (isNaN(registry[args[2]])) {
-                return getDlxInterpreterError.noValue("Registry", args[2]);
+                return DlxInterpreterError.noValue("Registry", args[2]);
             }
 
             return OK;
@@ -810,7 +826,7 @@
         let checkICommand = function (name, args) {
             // Checking if entries have values.
             if (isNaN(registry[args[1]])) {
-                return getDlxInterpreterError.noValue("Registry", args[1]);
+                return DlxInterpreterError.noValue("Registry", args[1]);
             }
 
             return OK;
@@ -855,7 +871,7 @@
             while (true) {
                 // Checking if the program runs too many steps.
                 if (++totalSteps > options.maxSteps) {
-                    return getDlxInterpreterError.tooManySteps();
+                    return DlxInterpreterError.tooManySteps();
                 }
 
                 // Checking if there is a breakpoint.
@@ -870,7 +886,7 @@
                 // Checking if the interpreter reached the end of the program.
                 if (status === OK && line >= instructions.length) {
                     line = 0;
-                    return getDlxInterpreterError.haltNotFound();
+                    return DlxInterpreterError.haltNotFound();
                 }
 
                 // Checking if everything else is fine.
@@ -903,7 +919,7 @@
             // Checking if everything is ok.
             if (status === OK && line >= instructions.length) {
                 line = 0;
-                return getDlxInterpreterError.haltNotFound();
+                return DlxInterpreterError.haltNotFound();
             }
 
             if (status === HALT || status === OK) {
@@ -920,93 +936,93 @@
 
             // Checking if the opcode exists.
             if (commandTypeValue === undefined) {
-                return getDlxInterpreterError.opcodeNotFound(instruction.opcode);
+                return DlxInterpreterError.opcodeNotFound(instruction.opcode);
             }
 
             // Checking if the arguments are valid.
             if (commandTypeValue === "R" || commandTypeValue === "I") {
                 // Checking number of arguments.
                 if (instruction.args.length != 3) {
-                    return getDlxInterpreterError.numberOfArguments(instruction.opcode, "3", instruction.args.length);
+                    return DlxInterpreterError.numberOfArguments(instruction.opcode, "3", instruction.args.length);
                 }
 
                 // Checking the type of the arguments.
                 if (!isRegistryAddress(instruction.args[0])) {
-                    return getDlxInterpreterError.addressExpected("registry", "first", instruction.args[0]);
+                    return DlxInterpreterError.addressExpected("registry", "first", instruction.args[0]);
                 }
                 if (!isRegistryAddress(instruction.args[1])) {
-                    return getDlxInterpreterError.addressExpected("registry", "second", instruction.args[1]);
+                    return DlxInterpreterError.addressExpected("registry", "second", instruction.args[1]);
                 }
                 if (commandTypeValue === "R") {
                     if (!isRegistryAddress(instruction.args[2])) {
-                        return getDlxInterpreterError.addressExpected("registry", "third", instruction.args[2]);
+                        return DlxInterpreterError.addressExpected("registry", "third", instruction.args[2]);
                     }
                 } else {
                     if (!isImmediateValue(instruction.args[2])) {
-                        return getDlxInterpreterError.immediateValueExpected("third", instruction.args[2]);
+                        return DlxInterpreterError.immediateValueExpected("third", instruction.args[2]);
                     }
                 }
 
                 // Checking if it tries to override R0.
                 if (instruction.args[0] === "R0") {
-                    return getDlxInterpreterError.readOnly();
+                    return DlxInterpreterError.readOnly();
                 }
             } else if (commandTypeValue === "J") {
                 if (instruction.opcode === "BNEZ" || instruction.opcode === "BEQZ") {
                     // Checking number of arguments.
                     if (instruction.args.length != 2) {
-                        return getDlxInterpreterError.numberOfArguments(instruction.opcode, "2", instruction.args.length);
+                        return DlxInterpreterError.numberOfArguments(instruction.opcode, "2", instruction.args.length);
                     }
 
                     // Checking the type of the arguments.
                     if (!isRegistryAddress(instruction.args[0])) {
-                        return getDlxInterpreterError.addressExpected("registry", "first", instruction.args[0]);
+                        return DlxInterpreterError.addressExpected("registry", "first", instruction.args[0]);
                     }
                 } else {
                     // Checking number of arguments.
                     if (instruction.args.length != 1) {
-                        return getDlxInterpreterError.numberOfArguments(instruction.opcode, "1", instruction.args.length);
+                        return DlxInterpreterError.numberOfArguments(instruction.opcode, "1", instruction.args.length);
                     }
 
                     if (instruction.opcode === "JR" || instruction.opcode === "JALR") {
                         // Checking the type of the arguments.
                         if (!isRegistryAddress(instruction.args[0])) {
-                            return getDlxInterpreterError.addressExpected("registry", "first", instruction.args[0]);
+                            return DlxInterpreterError.addressExpected("registry", "first", instruction.args[0]);
                         }
                     }
                 }
             } else if (instruction.opcode === "SW" || instruction.opcode === "LW") {
                 // Checking number of arguments.
                 if (instruction.args.length != 2) {
-                    return getDlxInterpreterError.numberOfArguments(instruction.opcode, "2", instruction.args.length);
+                    return DlxInterpreterError.numberOfArguments(instruction.opcode, "2", instruction.args.length);
                 }
 
                 if (instruction.opcode === "SW") {
                     // Checking the type of the arguments.
                     if (!isIndirectMemoryAddress(instruction.args[0])) {
-                        return getDlxInterpreterError.addressExpected("memory", "first", instruction.args[0]);
+                        return DlxInterpreterError.addressExpected("memory", "first", instruction.args[0]);
                     }
                     if (!isRegistryAddress(instruction.args[1])) {
-                        return getDlxInterpreterError.addressExpected("registry", "second", instruction.args[1]);
+                        return DlxInterpreterError.addressExpected("registry", "second", instruction.args[1]);
                     }
                 } else {
                     // Checking the type of the arguments.
                     if (!isRegistryAddress(instruction.args[0])) {
-                        return getDlxInterpreterError.addressExpected("registry", "first", instruction.args[0]);
+                        return DlxInterpreterError.addressExpected("registry", "first", instruction.args[0]);
                     }
                     if (!isIndirectMemoryAddress(instruction.args[1])) {
-                        return getDlxInterpreterError.addressExpected("memory", "second", instruction.args[1]);
+                        return DlxInterpreterError.addressExpected("memory", "second", instruction.args[1]);
                     }
 
                     // Checking if it tries to override R0.
                     if (instruction.args[0] === "R0") {
-                        return getDlxInterpreterError.readOnly();
+                        return DlxInterpreterError.readOnly();
                     }
                 }
             } else if (instruction.opcode === "HALT") {
                 // Checking number of arguments.
                 if (instruction.args.length != 0) {
-                    return getDlxInterpreterError.numberOfArguments("HALT", "0", instruction.args.length);
+                    return DlxInterpreterError.numberOfArguments("HALT", "0", instruction.args.length);
                 }
             }
 
