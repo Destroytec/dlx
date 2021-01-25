@@ -598,8 +598,8 @@
                 // Actual code.
                 if (registry[args[0]] !== 0) {
                     // Counting jump and checking if it was too much.
-                    if (++jumps[line - 1][labels[args[1]]] > options.maxJumps) {
-                        return getDlxInterpreterError.tooManyJumps((line - 1), (labels[args[1]]));
+                    if (++jumps[line][labels[args[1]]] > options.maxJumps) {
+                        return getDlxInterpreterError.tooManyJumps((line), (labels[args[1]]));
                     }
 
                     line = labels[args[1]];
@@ -623,8 +623,8 @@
                 // Actual code.
                 if (registry[args[0]] === 0) {
                     // Counting jump and checking if it was too much.
-                    if (++jumps[line - 1][labels[args[1]]] > options.maxJumps) {
-                        return getDlxInterpreterError.tooManyJumps((line - 1), (labels[args[1]]));
+                    if (++jumps[line][labels[args[1]]] > options.maxJumps) {
+                        return getDlxInterpreterError.tooManyJumps((line), (labels[args[1]]));
                     }
 
                     line = labels[args[1]];
@@ -641,8 +641,8 @@
                 }
 
                 // Counting jump and checking if it was too much.
-                if (++jumps[line - 1][labels[args[0]]] > options.maxJumps) {
-                    return getDlxInterpreterError.tooManyJumps((line - 1), labels[args[0]]);
+                if (++jumps[line][labels[args[0]]] > options.maxJumps) {
+                    return getDlxInterpreterError.tooManyJumps((line), labels[args[0]]);
                 }
 
                 // Actual code.
@@ -659,8 +659,8 @@
                 }
 
                 // Counting jump and checking if it was too much.
-                if (++jumps[line - 1][registry[args[0]]] > options.maxJumps) {
-                    return getDlxInterpreterError.tooManyJumps((line - 1), (registry[args[0]]));
+                if (++jumps[line][registry[args[0]]] > options.maxJumps) {
+                    return getDlxInterpreterError.tooManyJumps((line), (registry[args[0]]));
                 }
 
                 // Actual code.
@@ -677,8 +677,8 @@
                 }
 
                 // Counting jump and checking if it was too much.
-                if (++jumps[line - 1][labels[args[0]]] > options.maxJumps) {
-                    return getDlxInterpreterError.tooManyJumps((line - 1), (labels[args[0]]));
+                if (++jumps[line][labels[args[0]]] > options.maxJumps) {
+                    return getDlxInterpreterError.tooManyJumps((line), (labels[args[0]]));
                 }
 
                 // Actual code.
@@ -696,8 +696,8 @@
                 }
 
                 // Counting jump and checking if it was too much.
-                if (++jumps[line - 1][registry[args[0]]] > options.maxJumps) {
-                    return getDlxInterpreterError.tooManyJumps((line - 1), (registry[args[0]]));
+                if (++jumps[line][registry[args[0]]] > options.maxJumps) {
+                    return getDlxInterpreterError.tooManyJumps((line), (registry[args[0]]));
                 }
 
                 // Actual code.
@@ -710,7 +710,7 @@
             // Halt
             HALT: function (args) {
                 // Actual code.
-                line = 1;
+                // line = 0;
 
                 return HALT;
             }
@@ -764,7 +764,7 @@
         let labels;
 
         /** The current line of the program. */
-        let line = 1;
+        let line = 0;
 
         /** The current jumps from lines to lines. */
         let jumps;
@@ -782,11 +782,11 @@
         /** Sets the current line. */
         let setLine = function (newLine) {
             if (instructions === undefined) {
-                line = 1;
+                line = 0;
                 return;
             }
 
-            if (newLine > instructions.length) {
+            if (newLine >= instructions.length) {
                 throw "The new line is too big, program has only " + instructions.length + " lines.";
             }
 
@@ -837,10 +837,10 @@
             // Resetting jumps.
             jumps = [];
 
-            for (let i = 0; i <= instructions.length; i++) {
-                buffer = [];
+            for (let i = 0; i < instructions.length; i++) {
+                let buffer = [];
 
-                for (let j = 0; j <= instructions.length; j++) {
+                for (let j = 0; j < instructions.length; j++) {
                     buffer[j] = 0;
                 }
 
@@ -848,8 +848,8 @@
             }
 
             // Resetting line if needed.
-            if (line > instructions.length) {
-                line = 1;
+            if (line >= instructions.length) {
+                line = 0;
             }
 
             while (true) {
@@ -859,17 +859,17 @@
                 }
 
                 // Checking if there is a breakpoint.
-                if (instructions[line - 1].breakpoint && !isFirstLine) {
+                if (instructions[line].breakpoint && !isFirstLine) {
                     return OK;
                 }
 
                 isFirstLine = false;
 
-                status = run(instructions[line - 1]);
+                status = run(instructions[line]);
 
                 // Checking if the interpreter reached the end of the program.
-                if (status === OK && line > instructions.length) {
-                    line = 1;
+                if (status === OK && line >= instructions.length) {
+                    line = 0;
                     return getDlxInterpreterError.haltNotFound();
                 }
 
@@ -884,7 +884,7 @@
                 }
 
                 line--;
-                return "Error in line " + (line) + ": " + status;
+                return "Error in line " + (line + 1) + ": " + status;
             }
         }
 
@@ -893,16 +893,16 @@
             let status;
 
             // Resetting line if needed.
-            if (line > instructions.length) {
-                line = 1;
+            if (line >= instructions.length) {
+                line = 0;
             }
 
             // Run one line
-            status = run(instructions[line - 1]);
+            status = run(instructions[line]);
 
             // Checking if everything is ok.
-            if (status === OK && line > instructions.length) {
-                line = 1;
+            if (status === OK && line >= instructions.length) {
+                line = 0;
                 return getDlxInterpreterError.haltNotFound();
             }
 
@@ -911,7 +911,7 @@
             }
 
             line--;
-            return "Error in line " + (line) + ": " + status;
+            return "Error in line " + (line + 1) + ": " + status;
         }
 
         /** Validates an instruction. */
@@ -1081,16 +1081,16 @@
             let buffer,
                 program = newProgram.split("\n");
 
-            line = 1;
+            line = 0;
             labels = {};
             jumps = [];
             instructions = [];
 
             // Creating jump array.
-            for (let i = 0; i <= program.length; i++) {
+            for (let i = 0; i < program.length; i++) {
                 buffer = [];
 
-                for (let j = 0; j <= program.length; j++) {
+                for (let j = 0; j < program.length; j++) {
                     buffer[j] = 0;
                 }
 
@@ -1102,7 +1102,7 @@
                 instructions[i] = instruction;
 
                 if (instruction.label) {
-                    labels[instruction.label] = i + 1;
+                    labels[instruction.label] = i;
                 }
 
                 if (instruction.status !== OK) {

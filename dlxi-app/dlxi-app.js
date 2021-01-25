@@ -113,15 +113,15 @@
         /** Prints the current line in the line box. */
         let updateLine = function() {
             let line = DLX_Interpreter.getLine();
-            editor.removeLineClass(lastLine - 1, "background", "currentLine");
-            editor.addLineClass(line - 1, "background", "currentLine");
+            editor.removeLineClass(lastLine, "background", "currentLine");
+            editor.addLineClass(line, "background", "currentLine");
             lastLine = line;
-            editor.scrollIntoView({ line: line - 1, ch: 0 });
+            editor.scrollIntoView({ line: line, ch: 0 });
         }
 
         /** Resets the line to 1. */
         let resetLine = function() {
-            DLX_Interpreter.setLine(1);
+            DLX_Interpreter.setLine(0);
             updateLine();
         }
 
