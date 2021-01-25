@@ -141,7 +141,7 @@
             updateLine();
 
             // Checking if everything is ok.
-            if (status !== DlxInterpreter.OK) {
+            if (status !== DlxInterpreter.DlxStatus.OK) {
                 updateMessage(status);
                 return;
             } else {
@@ -166,7 +166,7 @@
             updateLine();
 
             // Checking if everything is ok.
-            if (status !== DlxInterpreter.OK) {
+            if (status !== DlxInterpreter.DlxStatus.OK) {
                 updateMessage(status);
                 return;
             } else {
@@ -750,7 +750,7 @@
             if (element.className === "closed") {
                 let status = DlxInterpreter.setProgram(editor.getValue());
 
-                if (status !== DlxInterpreter.OK) {
+                if (status !== DlxInterpreter.DlxStatus.OK) {
                     updateMessage(status);
                     updateLine();
                     return;
