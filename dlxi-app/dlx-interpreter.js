@@ -181,9 +181,9 @@
 
             let isInstruction = function (opcode, instructionType) {
                 if (opcode === undefined || typeof (opcode) !== "string") {
-                    console.error("Got a bad opcode.");
+                    throw "Got a bad opcode.";
                 } else if (instructionType !== undefined && typeof (instructionType) !== "string") {
-                    console.error("Got a bad instruction type.");
+                    throw "Got a bad instruction type.";
                 }
 
                 if (instructionType === undefined) {
@@ -556,6 +556,24 @@
             }
         }
 
+        /** The options of the interpreter. */
+        let options = {
+            maxSteps: 10000,
+            maxJumps: 1000
+        };
+
+        /** The instructions that the interpreter should interpret. */
+        let instructions = [];
+
+        /** A reference for the labels in the program. */
+        let labels = {};
+
+        /** The current line of the program. */
+        let line = 0;
+
+        /** The current jumps from lines to lines. */
+        let jumps = [];
+
         let runInstruction = function (instruction) {
             let opcode, args;
 
@@ -641,24 +659,11 @@
             };
         };
 
-        /** The options of the interpreter. */
-        let options;
-
-        /** The instructions that the interpreter should interpret. */
-        let instructions;
-
-        /** A reference for the labels in the program. */
-        let labels;
-
-        /** The current line of the program. */
-        let line = 0;
-
-        /** The current jumps from lines to lines. */
-        let jumps;
-
         /** Sets new options. */
         let setOptions = function (newOptions) {
-            options = newOptions;
+            for (let key in newOptions) {
+                options[key] = newOptions[key];
+            }
         }
 
         /** Returns the current line. */
@@ -668,12 +673,9 @@
 
         /** Sets the current line. */
         let setLine = function (newLine) {
-            if (instructions === undefined) {
-                line = 0;
-                return;
-            }
-
-            if (newLine >= instructions.length) {
+            if (newLine < 0) {
+                throw "The new line is too small.";
+            } else if (newLine >= instructions.length) {
                 throw "The new line is too big, program has only " + instructions.length + " lines.";
             }
 
