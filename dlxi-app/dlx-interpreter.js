@@ -1,7 +1,7 @@
 'use strict';
 (function (global) {
 
-    let DLX_Interpreter = (function () {
+    let DlxInterpreter = (function () {
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // General
@@ -1236,5 +1236,5 @@
         return methods;
     })();
 
-    global.DLX_Interpreter = DLX_Interpreter;
+    global.DlxInterpreter = DlxInterpreter;
 })(this);

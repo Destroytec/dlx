@@ -112,7 +112,7 @@
 
         /** Prints the current line in the line box. */
         let updateLine = function() {
-            let line = DLX_Interpreter.getLine();
+            let line = DlxInterpreter.getLine();
             editor.removeLineClass(lastLine, "background", "currentLine");
             editor.addLineClass(line, "background", "currentLine");
             lastLine = line;
@@ -121,7 +121,7 @@
 
         /** Resets the line to 1. */
         let resetLine = function() {
-            DLX_Interpreter.setLine(0);
+            DlxInterpreter.setLine(0);
             updateLine();
         }
 
@@ -131,17 +131,17 @@
 
             // Updating entries and options.
             setEntriesToInterpreter();
-            DLX_Interpreter.setOptions(options);
+            DlxInterpreter.setOptions(options);
 
             // Executing the program.
-            status = DLX_Interpreter.execute();
+            status = DlxInterpreter.execute();
 
             // Updating entries and line number.
             getEntriesFromInterpreter();
             updateLine();
 
             // Checking if everything is ok.
-            if (status !== DLX_Interpreter.OK) {
+            if (status !== DlxInterpreter.OK) {
                 updateMessage(status);
                 return;
             } else {
@@ -156,17 +156,17 @@
 
             // Updating entries and options.
             setEntriesToInterpreter();
-            DLX_Interpreter.setOptions(options);
+            DlxInterpreter.setOptions(options);
 
             // Executing the program one step.
-            status = DLX_Interpreter.step();
+            status = DlxInterpreter.step();
 
             // Updating entries and line number.
             getEntriesFromInterpreter();
             updateLine();
 
             // Checking if everything is ok.
-            if (status !== DLX_Interpreter.OK) {
+            if (status !== DlxInterpreter.OK) {
                 updateMessage(status);
                 return;
             } else {
@@ -644,12 +644,12 @@
             let address;
 
             for (let i = 1; i < options.numOfRegistryEntries; i++) {
-                DLX_Interpreter.setRegistryValue("R" + i, document.getElementById("R" + i).value);
+                DlxInterpreter.setRegistryValue("R" + i, document.getElementById("R" + i).value);
             }
 
             for (let i = 0; i < options.numOfMemoryEntries; i++) {
                 address = (options.memoryStart + i * 4) + "";
-                DLX_Interpreter.setMemoryValue(address, document.getElementById(address).value);
+                DlxInterpreter.setMemoryValue(address, document.getElementById(address).value);
             }
         }
 
@@ -659,7 +659,7 @@
                 address;
 
             for (let i = 1; i < options.numOfRegistryEntries; i++) {
-                value = DLX_Interpreter.getRegistryValue("R" + i);
+                value = DlxInterpreter.getRegistryValue("R" + i);
 
                 if (!isNaN(value)) {
                     document.getElementById("R" + i).value = value;
@@ -668,7 +668,7 @@
 
             for (let i = 0; i < options.numOfMemoryEntries; i++) {
                 address = (options.memoryStart + i * 4) + "";
-                value = DLX_Interpreter.getMemoryValue(address);
+                value = DlxInterpreter.getMemoryValue(address);
 
                 if (!isNaN(value)) {
                     document.getElementById(address).value = value;
@@ -748,15 +748,15 @@
 
             // Switching the expand more/less symbol and the class and setting the interpreter in interpreter / editor mode.
             if (element.className === "closed") {
-                let status = DLX_Interpreter.setProgram(editor.getValue());
+                let status = DlxInterpreter.setProgram(editor.getValue());
 
-                if (status !== DLX_Interpreter.OK) {
+                if (status !== DlxInterpreter.OK) {
                     updateMessage(status);
                     updateLine();
                     return;
                 }
 
-                DLX_Interpreter.setLine(1);
+                DlxInterpreter.setLine(1);
                 updateLine();
                 editor.setOption("readOnly", true);
                 document.getElementById("editor").className = "readOnly";
