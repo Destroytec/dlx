@@ -209,8 +209,8 @@
         ///////////////////////////////////////////////////////////////////////////////////////////
         // General
 
-        /** Contains all currently implemented opcodes. */
-        let commands = {
+        /** Contains all currently implemented instructions. */
+        let instructionSet = {
 
             ///////////////////////////////////////////////////////////////////////////////////////
             // DATA TRANSFERS
@@ -555,12 +555,18 @@
             }
         }
 
-        let runInstruction = function (opcode, args) {
-            if (!DlxInstruction.isInstruction(opcode)) {
-                return DlxStatus.HALT;
-            }
+        let runInstruction = function (instruction) {
+            let opcode, args;
 
-            if (DlxInstruction.isLoadInstruction(opcode)) {
+            line++;
+
+            opcode = instruction.opcode;
+            args = instruction.args;
+            if (opcode === "") {
+                return DlxStatus.OK;
+            } else if (!DlxInstruction.isInstruction(opcode)) {
+                return DlxStatus.HALT;
+            } else if (DlxInstruction.isLoadInstruction(opcode)) {
                 let address,
                     indirectValue,
                     directValue;
@@ -585,7 +591,7 @@
                     return DlxError.noValue("Memory", address);
                 }
 
-                return commands[opcode](args[0], address)
+                return instructionSet[opcode](args[0], address)
             } else if (DlxInstruction.isSaveInstruction(opcode)) {
                 let address,
                     indirectValue,
@@ -611,28 +617,27 @@
                     return DlxError.noValue("Registry", args[1]);
                 }
 
-                return commands[opcode](address, args[1]);
+                return instructionSet[opcode](address, args[1]);
             } else if (DlxInstruction.isRegistryInstruction(opcode)) {
                 // Check for valid input.
-                let status = checkRCommand(opcode, args);
+                if (isNaN(registry[args[1]])) {
+                    return DlxError.noValue("Registry", args[1]);
+                }
+                if (isNaN(registry[args[2]])) {
+                    return DlxError.noValue("Registry", args[2]);
+                }
 
-                if (status !== DlxStatus.OK) {
-                    return status;
-                };
-
-                return commands[opcode](args[0], args[1], args[2]);
+                return instructionSet[opcode](args[0], args[1], args[2]);
             } else if (DlxInstruction.isImmediateInstruction(opcode)) {
                 // Check for valid input.
-                let status = checkICommand(opcode, args);
+                if (isNaN(registry[args[1]])) {
+                    return DlxError.noValue("Registry", args[1]);
+                }
 
-                if (status !== DlxStatus.OK) {
-                    return status;
-                };
-
-                return commands[opcode](args[0], args[1], parseInt(args[2].replace("#", "")));
+                return instructionSet[opcode](args[0], args[1], parseInt(args[2].replace("#", "")));
             } else {
-                return commands[opcode](args);
-            }
+                return instructionSet[opcode](args);
+            };
         };
 
         /** The options of the interpreter. */
@@ -674,41 +679,6 @@
             line = newLine;
         }
 
-        /** Checks, if the R command arguments are valid. */
-        let checkRCommand = function (name, args) {
-            // Checking if entries have values.
-            if (isNaN(registry[args[1]])) {
-                return DlxError.noValue("Registry", args[1]);
-            }
-            if (isNaN(registry[args[2]])) {
-                return DlxError.noValue("Registry", args[2]);
-            }
-
-            return DlxStatus.OK;
-        }
-
-        /** Checks, if the I command arguments are valid. */
-        let checkICommand = function (name, args) {
-            // Checking if entries have values.
-            if (isNaN(registry[args[1]])) {
-                return DlxError.noValue("Registry", args[1]);
-            }
-
-            return DlxStatus.OK;
-        }
-
-        /** Runs a command. */
-        let run = function (command) {
-            line++;
-
-            // Checking if the line has an opcode.
-            if (command.opcode === "") {
-                return DlxStatus.OK;
-            }
-
-            return runInstruction(command.opcode, command.args);
-        }
-
         /** Executes the program. */
         let execute = function () {
             let status,
@@ -746,7 +716,7 @@
 
                 isFirstLine = false;
 
-                status = run(instructions[line]);
+                status = runInstruction(instructions[line]);
 
                 // Checking if the interpreter reached the end of the program.
                 if (status === DlxStatus.OK && line >= instructions.length) {
@@ -779,7 +749,7 @@
             }
 
             // Run one line
-            status = run(instructions[line]);
+            status = runInstruction(instructions[line]);
 
             // Checking if everything is ok.
             if (status === DlxStatus.OK && line >= instructions.length) {
