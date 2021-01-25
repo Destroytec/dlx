@@ -110,6 +110,102 @@
             return exporting;
         })();
 
+        let DlxInstruction = (function () {
+            /** Contains the command type of a command. */
+            let TYPES = {
+                0: "L",
+                1: "S",
+                2: "R",
+                3: "I",
+                4: "J",
+                5: "H",
+                LW: 0,
+                SW: 1,
+                ADD: 2,
+                SUB: 2,
+                MULT: 2,
+                AND: 2,
+                OR: 2,
+                XOR: 2,
+                SLL: 2,
+                SRL: 2,
+                SRA: 2,
+                SLT: 2,
+                SLE: 2,
+                SEQ: 2,
+                SNE: 2,
+                ADDI: 3,
+                SUBI: 3,
+                ANDI: 3,
+                ORI: 3,
+                XORI: 3,
+                SLLI: 3,
+                SRLI: 3,
+                SRAI: 3,
+                SLTI: 3,
+                SLEI: 3,
+                SEQI: 3,
+                SNEI: 3,
+                BEQZ: 4,
+                BNEZ: 4,
+                J: 4,
+                JR: 4,
+                JAL: 4,
+                JALR: 4,
+                HALT: 5
+            };
+
+            let isSaveInstruction = function (opcode) {
+                return isInstruction(opcode, "S");
+            };
+
+            let isLoadInstruction = function (opcode) {
+                return isInstruction(opcode, "L");
+            };
+
+            let isRegistryInstruction = function (opcode) {
+                return isInstruction(opcode, "R");
+            };
+
+            let isImmediateInstruction = function (opcode) {
+                return isInstruction(opcode, "I");
+            };
+
+            let isJumpInstruction = function (opcode) {
+                return isInstruction(opcode, "J");
+            };
+
+            let isHaltInstruction = function (opcode) {
+                return isInstruction(opcode, "H");
+            };
+
+            let isInstruction = function (opcode, instructionType) {
+                if (opcode === undefined || typeof (opcode) !== "string") {
+                    console.error("Got a bad opcode.");
+                } else if (instructionType !== undefined && typeof (instructionType) !== "string") {
+                    console.error("Got a bad instruction type.");
+                }
+
+                if (instructionType === undefined) {
+                    return TYPES[opcode] !== undefined;
+                } else {
+                    return TYPES[opcode] !== undefined ? TYPES[TYPES[opcode]] === instructionType : false;
+                };
+            };
+
+            let exporting = {
+                isSaveInstruction: isSaveInstruction,
+                isLoadInstruction: isLoadInstruction,
+                isRegistryInstruction: isRegistryInstruction,
+                isImmediateInstruction: isImmediateInstruction,
+                isJumpInstruction: isJumpInstruction,
+                isHaltInstruction: isHaltInstruction,
+                isInstruction: isInstruction
+            };
+
+            return exporting;
+        })();
+
         ///////////////////////////////////////////////////////////////////////////////////////////
         // General
 
@@ -148,7 +244,7 @@
                 // Actual code.
                 registry[args[0]] = memory[address];
 
-                return DLX;
+                return DlxStatus.OK;
             },
 
             // Save word
@@ -744,44 +840,6 @@
             }
         }
 
-        /** Contains the command type of a command. */
-        let commandType = {
-            LW: "L",
-            SW: "S",
-            ADD: "R",
-            SUB: "R",
-            MULT: "R",
-            AND: "R",
-            OR: "R",
-            XOR: "R",
-            SLL: "R",
-            SRL: "R",
-            SRA: "R",
-            SLT: "R",
-            SLE: "R",
-            SEQ: "R",
-            SNE: "R",
-            ADDI: "I",
-            SUBI: "I",
-            ANDI: "I",
-            ORI: "I",
-            XORI: "I",
-            SLLI: "I",
-            SRLI: "I",
-            SRAI: "I",
-            SLTI: "I",
-            SLEI: "I",
-            SEQI: "I",
-            SNEI: "I",
-            BEQZ: "J",
-            BNEZ: "J",
-            J: "J",
-            JR: "J",
-            JAL: "J",
-            JALR: "J",
-            HALT: ""
-        }
-
         /** The options of the interpreter. */
         let options;
 
@@ -944,18 +1002,21 @@
 
         /** Validates an instruction. */
         let validateInstruction = function (instruction) {
-            let commandTypeValue = commandType[instruction.opcode];
+            let opcode, argLength;
+
+            opcode = instruction.opcode;
+            argLength = instruction.args.length;
 
             // Checking if the opcode exists.
-            if (commandTypeValue === undefined) {
-                return DlxError.opcodeNotFound(instruction.opcode);
+            if (!DlxInstruction.isInstruction(opcode)) {
+                return DlxError.opcodeNotFound(opcode);
             }
 
             // Checking if the arguments are valid.
-            if (commandTypeValue === "R" || commandTypeValue === "I") {
+            if (DlxInstruction.isRegistryInstruction(opcode) || DlxInstruction.isImmediateInstruction(opcode)) {
                 // Checking number of arguments.
-                if (instruction.args.length != 3) {
-                    return DlxError.numberOfArguments(instruction.opcode, "3", instruction.args.length);
+                if (argLength != 3) {
+                    return DlxError.numberOfArguments(opcode, "3", argLength);
                 }
 
                 // Checking the type of the arguments.
@@ -965,7 +1026,7 @@
                 if (!isRegistryAddress(instruction.args[1])) {
                     return DlxError.addressExpected("registry", "second", instruction.args[1]);
                 }
-                if (commandTypeValue === "R") {
+                if (DlxInstruction.isRegistryInstruction(opcode)) {
                     if (!isRegistryAddress(instruction.args[2])) {
                         return DlxError.addressExpected("registry", "third", instruction.args[2]);
                     }
@@ -979,11 +1040,11 @@
                 if (instruction.args[0] === "R0") {
                     return DlxError.readOnly();
                 }
-            } else if (commandTypeValue === "J") {
-                if (instruction.opcode === "BNEZ" || instruction.opcode === "BEQZ") {
+            } else if (DlxInstruction.isJumpInstruction(opcode)) {
+                if (opcode === "BNEZ" || opcode === "BEQZ") {
                     // Checking number of arguments.
-                    if (instruction.args.length != 2) {
-                        return DlxError.numberOfArguments(instruction.opcode, "2", instruction.args.length);
+                    if (argLength != 2) {
+                        return DlxError.numberOfArguments(opcode, "2", argLength);
                     }
 
                     // Checking the type of the arguments.
@@ -992,24 +1053,24 @@
                     }
                 } else {
                     // Checking number of arguments.
-                    if (instruction.args.length != 1) {
-                        return DlxError.numberOfArguments(instruction.opcode, "1", instruction.args.length);
+                    if (argLength != 1) {
+                        return DlxError.numberOfArguments(instruction.opcode, "1", argLength);
                     }
 
-                    if (instruction.opcode === "JR" || instruction.opcode === "JALR") {
+                    if (opcode === "JR" || opcode === "JALR") {
                         // Checking the type of the arguments.
                         if (!isRegistryAddress(instruction.args[0])) {
                             return DlxError.addressExpected("registry", "first", instruction.args[0]);
                         }
                     }
                 }
-            } else if (instruction.opcode === "SW" || instruction.opcode === "LW") {
+            } else if (opcode === "SW" || opcode === "LW") {
                 // Checking number of arguments.
-                if (instruction.args.length != 2) {
-                    return DlxError.numberOfArguments(instruction.opcode, "2", instruction.args.length);
+                if (argLength != 2) {
+                    return DlxError.numberOfArguments(opcode, "2", argLength);
                 }
 
-                if (instruction.opcode === "SW") {
+                if (opcode === "SW") {
                     // Checking the type of the arguments.
                     if (!isIndirectMemoryAddress(instruction.args[0])) {
                         return DlxError.addressExpected("memory", "first", instruction.args[0]);
@@ -1031,10 +1092,10 @@
                         return DlxError.readOnly();
                     }
                 }
-            } else if (instruction.opcode === "HALT") {
+            } else if (DlxInstruction.isHaltInstruction(opcode)) {
                 // Checking number of arguments.
-                if (instruction.args.length != 0) {
-                    return DlxError.numberOfArguments("HALT", "0", instruction.args.length);
+                if (argLength != 0) {
+                    return DlxError.numberOfArguments("HALT", "0", argLength);
                 }
             }
 
@@ -1233,7 +1294,7 @@
         /** The methods that should be accessable from outside. */
         let methods = {
             DlxStatus: DlxStatus,
-            
+
             execute: execute,
 
             step: step,
